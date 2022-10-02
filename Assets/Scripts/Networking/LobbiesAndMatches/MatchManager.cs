@@ -8,7 +8,7 @@ using UnityEngine.SceneManagement;
 public class MatchManager : NetworkBehaviour {
 	public static MatchManager instance;
 
-	private List<Match> matches = new List<Match>();
+	public readonly SyncList<Match> matches = new SyncList<Match>();
 	public readonly SyncList<string> lobbyIDs = new SyncList<string>();
 
 	ExtNetworkRoomManager networkManager;
@@ -39,10 +39,6 @@ public class MatchManager : NetworkBehaviour {
 		NetworkServer.UnregisterHandler<RemovePlayerFromMatchMessage>();
 		NetworkServer.UnregisterHandler<BeginGameMessage>();
 	}
-
-	// public void AddPlayerToMatch(ExtNetworkRoomPlayer networkPlayer, string lobbyId){
-	// 	CmdAddPlayerToMatch(networkPlayer, lobbyId);
-	// }
 
 	// To be called from the success callback for joining a PlayFab lobby.
 	void AddPlayerToMatch(NetworkConnectionToClient conn, AddPlayerToMatchMessage msg){

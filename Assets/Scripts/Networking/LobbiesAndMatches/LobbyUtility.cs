@@ -6,27 +6,17 @@ using PlayFab.Multiplayer;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class LobbyManager : MonoBehaviour {
+public class LobbyUtility : MonoBehaviour {
 
-	// public PFEntityKey localPlayerEntityKey;
 	LobbySearchConfiguration lobbySearchConfig;
-
 	[SerializeField] Button findLobbiesButton;
-	public static LobbyManager instance;
+	public static LobbyUtility instance;
 	[SerializeField] Transform lobbyListPanel;
 	[SerializeField] GameObject lobbyListItemPrefab;
 	[SerializeField] AddLobbyForm addLobbyForm;
 	[SerializeField] GameObject mainLobbiesUI;
 	[SerializeField] JoinedLobbyUI joinedLobbyUI;
-
 	ExtNetworkRoomManager networkRoomManager;
-
-	// public ExtNetworkRoomPlayer localNetworkPlayer;
-
-
-
-	// List<LobbyInfo> lobbies = new List<LobbyInfo>();
-	// public readonly SyncList<string> lobbyIDs = new SyncList<string>();
 
 	void Start () {
 		if (instance == null){
@@ -36,13 +26,6 @@ public class LobbyManager : MonoBehaviour {
 			return;
 		}
 		networkRoomManager = FindObjectOfType<ExtNetworkRoomManager>();
-
-		// var authInfo = NetworkClient.connection?.authenticationData as AuthenticationInfo;
-		// Debug.Log(NetworkClient.connection?.identity);
-		// localNetworkPlayer = NetworkClient.connection?.identity.GetComponent<ExtNetworkRoomPlayer>();
-		// localNetworkPlayer.playerEntityKey = new PFEntityKey(
-		// 	authInfo.EntityId,
-		// 	PLAYER_ENTITY_TYPE); // PlayFab user's entity key
 
 		lobbySearchConfig = new LobbySearchConfiguration();
 		joinedLobbyUI.gameObject.SetActive(false);
@@ -63,7 +46,26 @@ public class LobbyManager : MonoBehaviour {
 		PlayFabMultiplayer.OnLobbyFindLobbiesCompleted += this.PlayFabMultiplayer_OnLobbyFindLobbiesCompleted;
 
 		PlayFabMultiplayer.OnLobbyJoinCompleted += this.PlayFabMultiplayer_OnLobbyJoinCompleted;
+
+		// OnLobbyCreateAndJoinCompleted
+		// OnLobbyDisconnected
+		// OnLobbyMemberAdded
+		// OnLobbyMemberRemoved
+		// OnAddMemberCompleted
+		// OnForceRemoveMemberCompleted
+		// OnLobbyJoinCompleted
+		// OnLobbyUpdated
+		// OnLobbyPostUpdateCompleted
+		// OnLobbyJoinArrangedLobbyCompleted
+		// OnLobbyFindLobbiesCompleted
+		// OnLobbySendInviteCompleted
+		// OnLobbyInviteReceived
+		// OnLobbyLeaveCompleted
+		// OnLobbyInviteListenerStatusChanged
+		// OnMatchmakingTicketStatusChanged
+		// OnMatchmakingTicketCompleted
 	}
+
 	void RemoveEventHandlers(){
 		PlayFabMultiplayer.OnLobbyCreateAndJoinCompleted -= this.PlayFabMultiplayer_OnLobbyCreateAndJoinCompleted;
 		PlayFabMultiplayer.OnLobbyDisconnected -= this.PlayFabMultiplayer_OnLobbyDisconnected;
@@ -107,9 +109,6 @@ public class LobbyManager : MonoBehaviour {
 			addLobbyForm.gameObject.SetActive(false);
 
 			JoinedLobby(lobby);
-
-			// // TODO: Shouldn't need to refresh the list here if we joined the lobby, but for the sake of testing, might as well fetch results.
-			// Invoke("FindLobbies", 1);
 		}
 		else
 		{
@@ -158,7 +157,6 @@ public class LobbyManager : MonoBehaviour {
 					id = result.LobbyId,
 					currentMembers = result.CurrentMemberCount,
 					maxMembers = result.MaxMemberCount,
-					// name = result.SearchProperties["name"], // Not sure what SearchProperties actually is, or if this will work.
 					connectionString = result.ConnectionString,
 				};
 				listItem.UpdateUI();

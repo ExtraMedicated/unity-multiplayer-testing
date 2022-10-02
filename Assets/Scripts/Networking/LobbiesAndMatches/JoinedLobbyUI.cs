@@ -53,6 +53,13 @@ public class JoinedLobbyUI : MonoBehaviour {
 	}
 
 	public void StartGame(){
+		var updateData = new LobbyDataUpdate {
+			MembershipLock = LobbyMembershipLock.Locked,
+		};
+		lobby.PostUpdate(
+			ExtNetworkRoomPlayer.localPlayer.playerEntityKey,
+			updateData
+		);
 		NetworkClient.Send(new BeginGameMessage {lobbyId = lobby.Id});
 	}
 

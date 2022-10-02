@@ -43,7 +43,7 @@ public class AddLobbyForm : MonoBehaviour {
 
 	public void CreateLobby(){
 		errorText.text = string.Empty;
-		LobbyManager.instance.CreateLobby(inputText, (uint)numPlayers);
+		LobbyUtility.instance.CreateLobby(inputText, (uint)numPlayers);
 	}
 
 	public void SetBusy(bool val){

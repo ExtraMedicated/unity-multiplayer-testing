@@ -15,6 +15,6 @@ public class MainLobbiesUI : MonoBehaviour {
 	IEnumerator DelayedSearch(){
 		// Delay refresh to allow time for changes to propagate.
 		yield return new WaitForSeconds(2f);
-		LobbyManager.instance.FindLobbies();
+		LobbyUtility.instance.FindLobbies();
 	}
 }

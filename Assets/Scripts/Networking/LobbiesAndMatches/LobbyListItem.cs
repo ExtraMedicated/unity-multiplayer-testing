@@ -14,7 +14,7 @@ public class LobbyListItem : MonoBehaviour {
 	}
 
 	public void OnClickLobby(){
-		LobbyManager.instance.JoinLobby(lobby.connectionString);
+		LobbyUtility.instance.JoinLobby(lobby.connectionString);
 	}
 
 }

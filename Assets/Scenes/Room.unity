@@ -5325,7 +5325,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 2104391352}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5de1b54958579f44c9cf879e810353a8, type: 3}
+  m_Script: {fileID: 11500000, guid: de232e2ac6bbdb843956ae48b71c8904, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   findLobbiesButton: {fileID: 430744820}

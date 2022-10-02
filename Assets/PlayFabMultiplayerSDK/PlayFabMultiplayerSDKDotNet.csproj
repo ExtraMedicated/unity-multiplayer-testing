@@ -1,0 +1,190 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{0637FC21-9A94-427D-8020-48312BEEE57F}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Playfab.Multiplayer</RootNamespace>
+    <AssemblyName>PlayFabMultiplayerSDK</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+    <LangVersion>9.0</LangVersion>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>portable</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;LOBBY_MOCK</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DebugMock|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;LOBBY_MOCK</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Source\Scripts\API\CreateAndJoinLobbyConfiguration.cs" />
+    <Compile Include="Source\Scripts\API\Lobby.cs" />
+    <Compile Include="Source\Scripts\API\LobbyAccessPolicy.cs" />
+    <Compile Include="Source\Scripts\API\LobbyArrangedJoinConfiguration.cs" />
+    <Compile Include="Source\Scripts\API\LobbyDataUpdate.cs" />
+    <Compile Include="Source\Scripts\API\LobbyDisconnectingReason.cs" />
+    <Compile Include="Source\Scripts\API\LobbyInvitationListenerStatus.cs" />
+    <Compile Include="Source\Scripts\API\LobbyMemberRemovedReason.cs" />
+    <Compile Include="Source\Scripts\API\LobbyMemberUpdateSummary.cs" />
+    <Compile Include="Source\Scripts\API\LobbyOwnerMigrationPolicy.cs" />
+    <Compile Include="Source\Scripts\API\LobbySearchConfiguration.cs" />
+    <Compile Include="Source\Scripts\API\LobbySearchFriendsFilter.cs" />
+    <Compile Include="Source\Scripts\API\LobbySearchResult.cs" />
+    <Compile Include="Source\Scripts\API\LobbyStateChangeResult.cs" />
+    <Compile Include="Source\Scripts\API\LogLevelType.cs" />
+    <Compile Include="Source\Scripts\API\MatchmakingMatchDetails.cs" />
+    <Compile Include="Source\Scripts\API\MatchmakingTicket.cs" />
+    <Compile Include="Source\Scripts\API\MatchmakingTicketMatchMember.cs" />
+    <Compile Include="Source\Scripts\API\MatchmakingTicketResult.cs" />
+    <Compile Include="Source\Scripts\API\MatchmakingTicketStatus.cs" />
+    <Compile Include="Source\Scripts\API\MatchUser.cs" />
+    <Compile Include="Source\Scripts\API\Multiplayer.cs" />
+    <Compile Include="Source\Scripts\API\PFEntityKey.cs" />
+    <Compile Include="Source\Scripts\API\PlayFabMultiplayerErrorArgs.cs" />
+    <Compile Include="Source\Scripts\Helpers\Converters.cs" />
+    <Compile Include="Source\Scripts\Helpers\DisposableBuffer.cs" />
+    <Compile Include="Source\Scripts\Helpers\DisposableCollection.cs" />
+    <Compile Include="Source\Scripts\Helpers\LobbyError.cs" />
+    <Compile Include="Source\Scripts\Helpers\MarshalHelpers.cs" />
+    <Compile Include="Source\Scripts\Helpers\ObjectPool.cs" />
+    <Compile Include="Source\Scripts\Helpers\SizeT.cs" />
+    <Compile Include="Source\Scripts\Helpers\UTF8StringPtr.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFLobbyAccessPolicy.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFLobbyArrangedJoinConfiguration.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFLobbyConsts.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFLobbyCreateAndJoinConfiguration.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFLobbyDataUpdate.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFLobbyDisconnectingReason.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFLobbyHandle.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFLobbyInvitationListenerStatus.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFLobbyJoinConfiguration.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFLobbyMemberDataUpdate.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFLobbyMemberUpdateSummary.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFLobbyOwnerMigrationPolicy.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFLobbySearchConfiguration.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFLobbySearchFriendsFilter.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFLobbySearchResult.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFLobbyStateChange.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFLobbyStateChangeResult.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFLobbyStateChangeType.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFMatchmakingMatchDetails.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFMatchmakingMatchMember.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFMatchmakingStateChange.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFMatchmakingStateChangeType.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFMatchmakingTicket.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFMatchmakingTicketConfiguration.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFMatchmakingTicketHandle.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFMatchmakingTicketResult.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFMatchmakingTicketStatus.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFMemberRemovedReason.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFMultiplayerHandle.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFMultiplayerThreadId.cs" />
+    <Compile Include="Source\Scripts\Interop\InteropConfiguration.cs" />
+    <Compile Include="Source\Scripts\Interop\NativeTypeNameAttribute.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\Methods.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobby.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyAccessPolicy.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyArrangedJoinCompletedStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyArrangedJoinConfiguration.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyCreateAndJoinCompletedStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyCreateAndJoinConfiguration.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyDataUpdate.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyDisconnectedStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyDisconnectingReason.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyDisconnectingStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyFindLobbiesCompletedStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyInvitationListenerStatus.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyInvitationListenerStatusChangedStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyInviteReceivedStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyJoinCompletedStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyJoinConfiguration.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyLeaveCompletedStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyMemberAddedStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyMemberDataUpdate.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyMemberRemovedReason.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyMemberRemovedStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyMemberUpdateSummary.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyOwnerMigrationPolicy.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyPostUpdateCompletedStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbySearchConfiguration.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbySearchFriendsFilter.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbySearchResult.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbySendInviteCompletedStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyStateChangeResult.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyStateChangeType.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobby\PFLobbyUpdatedStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFEntityKey\PFEntityKey.cs" />
+    <Compile Include="Source\Scripts\Interop\PFLobbyStateChangeUnion.cs" />
+    <Compile Include="Source\Scripts\Interop\PFMatchmaking\Methods.cs" />
+    <Compile Include="Source\Scripts\Interop\PFMatchmaking\PFMatchmakingDestroyTicketCompletedStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFMatchmaking\PFMatchmakingMatchDetails.cs" />
+    <Compile Include="Source\Scripts\Interop\PFMatchmaking\PFMatchmakingMatchMember.cs" />
+    <Compile Include="Source\Scripts\Interop\PFMatchmaking\PFMatchmakingStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFMatchmaking\PFMatchmakingStateChangeType.cs" />
+    <Compile Include="Source\Scripts\Interop\PFMatchmaking\PFMatchmakingTicket.cs" />
+    <Compile Include="Source\Scripts\Interop\PFMatchmaking\PFMatchmakingTicketCompletedStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFMatchmaking\PFMatchmakingTicketConfiguration.cs" />
+    <Compile Include="Source\Scripts\Interop\PFMatchmaking\PFMatchmakingTicketResult.cs" />
+    <Compile Include="Source\Scripts\Interop\PFMatchmaking\PFMatchmakingTicketStatus.cs" />
+    <Compile Include="Source\Scripts\Interop\PFMatchmaking\PFMatchmakingTicketStatusChangedStateChange.cs" />
+    <Compile Include="Source\Scripts\Interop\PFMatchmakingStateChangeUnion.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\Lobby.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFEntityKey.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFMultiplayerCommon.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFMultiplayerLobby.cs" />
+    <Compile Include="Source\Scripts\InteropWrapper\PFMultiplayerMatchmaking.cs" />
+    <Compile Include="Source\Scripts\Interop\PFMultiplayer\Methods.cs" />
+    <Compile Include="Source\Scripts\Interop\PFMultiplayer\PFMultiplayer.cs" />
+    <Compile Include="Source\Scripts\Interop\PFMultiplayer\PFMultiplayerAllocateMemoryCallback.cs" />
+    <Compile Include="Source\Scripts\Interop\PFMultiplayer\PFMultiplayerFreeMemoryCallback.cs" />
+    <Compile Include="Source\Scripts\Interop\PFMultiplayer\PFMultiplayerThreadId.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>

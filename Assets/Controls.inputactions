@@ -1,0 +1,51 @@
+{
+    "name": "Controls",
+    "maps": [
+        {
+            "name": "Player",
+            "id": "dc7c0297-ff54-412b-9fd3-d8bbb03e01a2",
+            "actions": [
+                {
+                    "name": "Up",
+                    "type": "Button",
+                    "id": "aa30ceca-21df-41be-9253-e8da369760fe",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "ba027f1a-e88d-4a73-9d82-098db6679bfe",
+                    "path": "<Keyboard>/w",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Ship",
+                    "action": "Up",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "b9562fc9-b762-4e39-81b1-755b904bbc58",
+                    "path": "<Keyboard>/upArrow",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Ship",
+                    "action": "Up",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": [
+        {
+            "name": "Ship",
+            "bindingGroup": "Ship",
+            "devices": []
+        }
+    ]
+}

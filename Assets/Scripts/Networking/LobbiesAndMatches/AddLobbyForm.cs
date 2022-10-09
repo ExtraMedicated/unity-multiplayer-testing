@@ -11,26 +11,27 @@ public class AddLobbyForm : MonoBehaviour {
 	const int DEFAULT_PLAYERS = 10;
 	const int MAX_PLAYERS = 10;
 
-	[SerializeField] TMP_InputField nameField;
+	// [SerializeField] TMP_InputField nameField;
 	[SerializeField] TMP_InputField numberField;
 	[SerializeField] TMP_Text errorText;
-	[SerializeField] Button submitBtn;
+	// [SerializeField] Button submitBtn;
 	[SerializeField] GameObject loadingOverlay;
 
-	string inputText;
+	// string inputText;
 	int numPlayers;
+	bool isPrivate;
 
 	void OnEnable(){
-		submitBtn.interactable = false;
+		// submitBtn.interactable = false;
 		errorText.text = string.Empty;
 		numPlayers = DEFAULT_PLAYERS;
 		numberField.text = DEFAULT_PLAYERS.ToString();
 	}
 
-	public void OnNameChanged(string text){
-		inputText = Regex.Replace(text, @"[^\u0020-\u007E]", string.Empty);
-		submitBtn.interactable = !string.IsNullOrWhiteSpace(inputText);
-	}
+	// public void OnNameChanged(string text){
+	// 	inputText = Regex.Replace(text, @"[^\u0020-\u007E]", string.Empty);
+	// 	submitBtn.interactable = !string.IsNullOrWhiteSpace(inputText);
+	// }
 
 	public void NumPlayersChanged(string input){
 		if (int.TryParse(input, out int num)){
@@ -43,17 +44,21 @@ public class AddLobbyForm : MonoBehaviour {
 
 	public void CreateLobby(){
 		errorText.text = string.Empty;
-		LobbyUtility.instance.CreateLobby(inputText, (uint)numPlayers);
+		LobbyUtility.instance.CreateLobby(/*inputText,*/(uint)numPlayers, !isPrivate);
 	}
 
 	public void SetBusy(bool val){
 		loadingOverlay.SetActive(val);
-		nameField.interactable = !val;
+		// nameField.interactable = !val;
 		numberField.interactable = !val;
-		submitBtn.interactable = !val;
+		// submitBtn.interactable = !val;
 	}
 
 	public void SetError(string msg){
 		errorText.text = msg;
+	}
+
+	public void SetPrivate(bool val){
+		isPrivate = val;
 	}
 }

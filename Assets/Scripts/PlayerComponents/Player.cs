@@ -11,6 +11,7 @@ public class Player : NetworkBehaviour
 	Rigidbody _rigidbody;
 	[SerializeField] CinemachineVirtualCamera virtualCamera;
 	internal ExtNetworkRoomPlayer networkRoomPlayer;
+	internal ExtNetworkRoomManager networkManager;
 	CameraMovement cameraMovement;
 
 	[SyncVar] public float fuel = 100;
@@ -42,6 +43,7 @@ public class Player : NetworkBehaviour
 		_rigidbody = GetComponent<Rigidbody>();
 		centerX = Screen.width/2;
 		centerY = Screen.height/2;
+		networkManager = FindObjectOfType<ExtNetworkRoomManager>();
 
 		// if (isServer){
 		// 	playerId = GetInstanceID();
@@ -111,21 +113,11 @@ public class Player : NetworkBehaviour
 			return;
 
 		if (hasAuthority && Input.GetKeyDown(KeyCode.Escape)){
-			CmdDisconnectGame();
+			networkRoomPlayer.QuitGame();
 			return;
 		}
 
 		HandleInput();
-	}
-
-	[Command]
-	void CmdDisconnectGame () {
-		if (networkRoomPlayer != null){
-			networkRoomPlayer.ServerDisconnect();
-		} else {
-			// This is for single player mode (ie, running as host + client).
-			FindObjectOfType<NetworkManager>().StopHost();
-		}
 	}
 
 	void HandleInput(){

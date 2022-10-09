@@ -5,6 +5,7 @@ using UnityEngine;
 
 [Serializable]
 public class AuthenticationInfo {
+	public string PlayerName;
 	public string EntityId;
 	public string SessionTicket;
 }

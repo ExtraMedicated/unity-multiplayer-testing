@@ -7,4 +7,6 @@ public class LobbyInfo {
 	public string connectionString;
 	public uint currentMembers;
 	public uint maxMembers;
+	public bool isInProgress;
+	public bool IsJoinable() => currentMembers < maxMembers && !isInProgress;
 }

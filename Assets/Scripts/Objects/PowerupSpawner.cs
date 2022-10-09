@@ -17,14 +17,11 @@ public class PowerupSpawner : MonoBehaviour {
 	}
 
 	internal void SpawnItem(){
-		Debug.Log("SpawnItem?");
 		if (!NetworkServer.active) return;
-		Debug.Log("SpawnItem true");
-
 		var item = Object.Instantiate(Resources.Load($"Powerups/{powerupType.ToString()}"), transform.position, Quaternion.identity) as GameObject;
 		if (secondsToRespawn > 0){
 			item.GetComponent<Powerup>().OnCollected += () => {
-				Debug.Log("Item Collected");
+				// Debug.Log("Item Collected");
 				StartCoroutine(RespawnItem());
 			};
 		}

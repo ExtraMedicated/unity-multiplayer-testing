@@ -25,13 +25,14 @@ public struct MaintenanceMessage : NetworkMessage
 }
 
 public struct AuthRequestMessage : NetworkMessage {
-	public string Username;
-	public string EntityId;
-	public string SessionTicket;
+	public string username;
+	public string entityId;
+	public string sessionTicket;
 
 }
 
 public struct AuthResponseMessage : NetworkMessage {
+	public string username;
 	public string sessionTicket;
 	public string entityId;
 }
@@ -49,15 +50,50 @@ public struct CreateGamePlayerMessage : NetworkMessage {
 	public Color color;
 }
 
-public struct AddPlayerToMatchMessage : NetworkMessage {
-	// public ExtNetworkRoomPlayer networkPlayer;
-	public string lobbyId;
+public struct CreateMatchRequest : NetworkMessage {
+	public ExtNetworkRoomPlayer networkPlayer;
+	// public string name;
+	public uint maxPlayers;
+	public bool isPublic;
 }
 
-public struct RemovePlayerFromMatchMessage : NetworkMessage {
+public struct CreateMatchResponse : NetworkMessage {
+	public Match match;
+}
+public struct AddPlayerToMatchRequest : NetworkMessage {
 	// public ExtNetworkRoomPlayer networkPlayer;
 	public string lobbyId;
 }
+// public struct AddedPlayerToMatchMessage : NetworkMessage {
+// 	public ExtNetworkRoomPlayer networkPlayer;
+// 	public Match match;
+// }
+
+public struct AddPlayerToMatchError : NetworkMessage {
+	public string errorText;
+}
+
+
+public struct RemovePlayerFromMatchMessage : NetworkMessage {
+	public ExtNetworkRoomPlayer networkPlayer;
+	public string matchId;
+}
+
+// public struct PlayerRemovedFromMatchMessage : NetworkMessage {
+// 	// public ExtNetworkRoomPlayer networkPlayer;
+// 	// public string lobbyId;
+// 	public uint playerNetId;
+// 	public Match match;
+// }
+
+public struct FindLobbiesRequest : NetworkMessage {}
+
+public struct FindLobbiesResponse : NetworkMessage {
+	public List<Match> matches;
+}
+
+
+
 public struct BeginGameMessage : NetworkMessage {
 	public string lobbyId;
 }

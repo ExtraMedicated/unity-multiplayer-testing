@@ -172,7 +172,7 @@ public class LoginForm : MonoBehaviour {
 			// 	break;
 			case AuthenticationMode.Local:
 				NetworkClient.connection.Send(new AuthRequestMessage {
-					Username = playerName
+					username = playerName
 				});
 				break;
 		}
@@ -185,9 +185,9 @@ public class LoginForm : MonoBehaviour {
 
 		// Tell the server that the user logged in.
 		NetworkClient.connection.Send(new AuthRequestMessage {
-			Username = !string.IsNullOrWhiteSpace(usernameField.text) ? usernameField.text : "Nameless nobody",
-			EntityId = response.EntityToken.Entity.Id,
-			SessionTicket = response.SessionTicket,
+			username = !string.IsNullOrWhiteSpace(usernameField.text) ? usernameField.text : "Nameless nobody",
+			entityId = response.EntityToken.Entity.Id,
+			sessionTicket = response.SessionTicket,
 		});
 	}
 	// private void OnPlayFabRegisterSuccess(RegisterPlayFabUserResult response)

@@ -1,0 +1,12 @@
+Need lobby leader.
+
+Add ability to kick players.
+
+Re-integrate PlayFab
+Need to update lobby status and visibility.
+
+Need to be able to find private lobby.
+
+
+
+PlayFab lobby invitations?

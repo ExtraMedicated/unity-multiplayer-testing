@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5861129124998829853}
   - component: {fileID: 5861129124998829852}
-  - component: {fileID: 5861129124998829843}
+  - component: {fileID: 1121208518}
   m_Layer: 0
   m_Name: ServerMatchManager
   m_TagString: Untagged
@@ -47,10 +47,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   sceneId: 0
   serverOnly: 0
-  visible: 0
-  m_AssetId: 
+  visible: 2
+  m_AssetId: 68fd13d6fe069d040901c4ccbff1be14
   hasSpawned: 0
---- !u!114 &5861129124998829843
+--- !u!114 &1121208518
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -59,7 +59,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5861129124998829842}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: abea8bf7182beb44cbc3624da6bc5fbe, type: 3}
+  m_Script: {fileID: 11500000, guid: 793dbe9d1beda7f458169c6284a10812, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   syncMode: 0

@@ -18,13 +18,24 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 {
 	const string PLAYER_ENTITY_TYPE = "title_player_account";
 	// public string PlayFabId { get; internal set; }
-	// public string PlayerName { get; internal set; }
 
 	AuthenticationInfo authInfo;
+	ExtNetworkRoomManager _netMgr;
+	ExtNetworkRoomManager networkManager {
+		get {
+			if (_netMgr == null){
+				_netMgr = FindObjectOfType<ExtNetworkRoomManager>();
+			}
+			return _netMgr;
+		}
+	}
+
+
 	public static ExtNetworkRoomPlayer localPlayer;
 	public PFEntityKey playerEntityKey;
-	[SyncVar] public string lobbyId;
-	public Lobby lobby;
+	[SyncVar] public string playerName;
+	[SyncVar] public string matchId;
+	// public Lobby lobby;
 
 
 	#region Start & Stop Callbacks
@@ -54,18 +65,38 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 	/// This is invoked on clients when the server has caused this object to be destroyed.
 	/// <para>This can be used as a hook to invoke effects or do client specific cleanup.</para>
 	/// </summary>
-	public override void OnStopClient() { }
+	public override void OnStopClient() {
 
-	public void ServerDisconnect () {
-		if (NetworkServer.active){
-			MatchManager.instance.RemovePlayerFromMatch(netIdentity.connectionToClient, new RemovePlayerFromMatchMessage {lobbyId = lobbyId});
-			RpcDisconnectGame();
-			lobbyId = null;
+	}
+
+	// Call this from the client.
+	public void QuitGame(){
+		CmdDisconnectGame();
+	}
+
+	[Command]
+	void CmdDisconnectGame () {
+		if (networkManager.gameMode == ExtNetworkRoomManager.GameMode.SinglePlayer){
+			// This is for single player mode (ie, running as host + client).
+			networkManager.StopHost();
+		} else {
+			ServerDisconnect();
 		}
 	}
 
-	[ClientRpc]
-	void RpcDisconnectGame () {
+	void ServerDisconnect () {
+		if (NetworkServer.active){
+			if (matchId != null){
+				Debug.Log($"ServerDisconnect | matchId = {matchId}");
+				MatchManager2.instance.RemovePlayerFromMatch(this, matchId);
+				matchId = null;
+			}
+			TargetDisconnectGame();
+		}
+	}
+
+	[TargetRpc]
+	void TargetDisconnectGame () {
 		ClientDisconnect();
 	}
 

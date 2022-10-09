@@ -56,12 +56,14 @@ public class NewNetworkAuthenticator : NetworkAuthenticator
 		// Debug.Log($"NewNetworkAuthenticator OnAuthRequestMessage {msg.SessionTicket} {msg.EntityId}");
 		try {
 			conn.authenticationData = new AuthenticationInfo {
-				EntityId = msg.EntityId,
-				SessionTicket = msg.SessionTicket,
+				PlayerName = msg.username,
+				EntityId = msg.entityId,
+				SessionTicket = msg.sessionTicket,
 			};
 			conn.Send(new AuthResponseMessage {
-				sessionTicket = msg.SessionTicket,
-				entityId = msg.EntityId,
+				username = msg.username,
+				sessionTicket = msg.sessionTicket,
+				entityId = msg.entityId,
 			});
 			// Accept the successful authentication
 			ServerAccept(conn);

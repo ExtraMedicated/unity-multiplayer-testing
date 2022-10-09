@@ -24,8 +24,9 @@ public class BuildScript
 
 	[MenuItem("Build/Build All")]
 	public static void BuildAll(){
-		BuildWindowsServer();
 		BuildWindowsClient();
+		BuildWindowsServer();
+		SwitchToWindowsStandalone();
 	}
 
 	private static void ClearFolder(string path){

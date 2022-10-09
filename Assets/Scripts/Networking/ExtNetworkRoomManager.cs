@@ -23,9 +23,8 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 	}
 	private List<UnityNetworkConnection> _connections = new List<UnityNetworkConnection>();
 
-	public class PlayerEvent : UnityEvent<string> { }
-	public PlayerEvent OnPlayerAdded = new PlayerEvent();
-	public PlayerEvent OnPlayerRemoved = new PlayerEvent();
+	public Action<ExtNetworkRoomPlayer> OnPlayerAdded;
+	public Action<ExtNetworkRoomPlayer> OnPlayerRemoved;
 
 	public Action<string, ushort> _OnStartClient;
 	public Action _OnClientConnect;
@@ -103,9 +102,11 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 	{
 		Debug.Log("OnServerAddPlayer");
 		var authInfo = conn.authenticationData as AuthenticationInfo;
-		Debug.Log("EntityId: " + authInfo?.EntityId);
+		// Debug.Log("EntityId: " + authInfo?.EntityId);
 		base.OnServerAddPlayer(conn);
-		OnPlayerAdded?.Invoke(authInfo?.EntityId);
+		var roomPlayer = conn.identity.GetComponent<ExtNetworkRoomPlayer>();
+		roomPlayer.playerName = authInfo.PlayerName;
+		OnPlayerAdded?.Invoke(roomPlayer);
 	}
 
 	// public override GameObject OnRoomServerCreateRoomPlayer(NetworkConnectionToClient conn)
@@ -119,18 +120,17 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 
 	public override void OnRoomServerConnect(NetworkConnectionToClient conn)
 	{
-		var authInfo = conn.authenticationData as AuthenticationInfo;
-		Debug.Log("OnRoomServerConnect " + conn.identity);
-		Debug.Log("OnRoomServerConnect " + authInfo?.EntityId);
+		// var authInfo = conn.authenticationData as AuthenticationInfo;
+		// Debug.Log("OnRoomServerConnect " + conn.identity);
+		// Debug.Log("OnRoomServerConnect " + authInfo?.EntityId);
 	}
 	public override void OnRoomServerDisconnect(NetworkConnectionToClient conn)
 	{
 		Debug.Log("OnRoomServerDisconnect " + conn.identity);
 		// var playerInfo = conn.identity.GetComponent<PlayerInfo>();
-		var authInfo = conn.authenticationData as AuthenticationInfo;
-		// Debug.Log($"playerInfo.EntityId {playerInfo?.EntityId} | authInfo.EntityId {authInfo?.EntityId}");
-		Debug.Log($"authInfo.EntityId {authInfo?.EntityId}");
-		OnPlayerRemoved?.Invoke(authInfo?.EntityId);
+		// var authInfo = conn.authenticationData as AuthenticationInfo;
+		// Debug.Log($"authInfo.EntityId {authInfo?.EntityId}");
+		OnPlayerRemoved?.Invoke(conn.identity.GetComponent<ExtNetworkRoomPlayer>());
 	}
 
 	public override void OnRoomStartClient()

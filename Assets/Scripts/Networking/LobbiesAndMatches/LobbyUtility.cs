@@ -21,7 +21,7 @@ public class LobbyUtility : MonoBehaviour {
 	[SerializeField] GameObject mainLobbiesUI;
 	[SerializeField] JoinedLobbyUI joinedLobbyUI;
 	ExtNetworkRoomManager networkRoomManager;
-	[SerializeField] MatchManager2 matchManager;
+	[SerializeField] MatchManager matchManager;
 	[SerializeField] TMP_Text statusMessage;
 
 	// Coroutine updateMatchesCoroutuine;
@@ -81,6 +81,7 @@ public class LobbyUtility : MonoBehaviour {
 		matchManager.OnPlayerJoinedMatch += OnPlayerAddedToMatch;
 		matchManager.OnPlayerLeftMatch += OnPlayerRemovedFromMatch;
 		matchManager.OnRemoveMatch += OnMatchRemoved;
+		matchManager.OnUpdateMatch += OnMatchUpdated;
 
 		// PlayFabMultiplayer.OnLobbyCreateAndJoinCompleted += this.PlayFabMultiplayer_OnLobbyCreateAndJoinCompleted;
 		// PlayFabMultiplayer.OnLobbyDisconnected += this.PlayFabMultiplayer_OnLobbyDisconnected;
@@ -99,6 +100,7 @@ public class LobbyUtility : MonoBehaviour {
 		matchManager.OnPlayerJoinedMatch -= OnPlayerAddedToMatch;
 		matchManager.OnPlayerLeftMatch -= OnPlayerRemovedFromMatch;
 		matchManager.OnRemoveMatch -= OnMatchRemoved;
+		matchManager.OnUpdateMatch -= OnMatchUpdated;
 
 		// PlayFabMultiplayer.OnLobbyCreateAndJoinCompleted -= this.PlayFabMultiplayer_OnLobbyCreateAndJoinCompleted;
 		// PlayFabMultiplayer.OnLobbyDisconnected -= this.PlayFabMultiplayer_OnLobbyDisconnected;

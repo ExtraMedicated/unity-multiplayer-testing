@@ -4,6 +4,7 @@ Add ability to kick players.
 
 Re-integrate PlayFab
 Need to update lobby status and visibility.
+	Also remember to do something when the round is over.
 
 Need to be able to find private lobby.
 

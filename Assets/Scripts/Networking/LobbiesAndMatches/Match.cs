@@ -11,4 +11,5 @@ public class Match {
 	public uint lobbyOwnerNetId;
 	public bool isPublic;
 	public bool isInProgress;
+	public string level = "_1-intro";
 }

@@ -105,8 +105,10 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 		// Debug.Log("EntityId: " + authInfo?.EntityId);
 		base.OnServerAddPlayer(conn);
 		var roomPlayer = conn.identity.GetComponent<ExtNetworkRoomPlayer>();
-		roomPlayer.playerName = authInfo.PlayerName;
-		OnPlayerAdded?.Invoke(roomPlayer);
+		if (roomPlayer != null){
+			roomPlayer.playerName = authInfo.PlayerName;
+			OnPlayerAdded?.Invoke(roomPlayer);
+		}
 	}
 
 	// public override GameObject OnRoomServerCreateRoomPlayer(NetworkConnectionToClient conn)
@@ -414,9 +416,10 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 
 	void OnCreateGamePlayer(NetworkConnectionToClient conn, CreateGamePlayerMessage msg){
 		// We have Network Start Positions in first additive scene...pick one
+		var roomPlayer = conn.identity.GetComponent<ExtNetworkRoomPlayer>();
+		var scene = SceneManager.GetSceneByName(MatchManager.instance.GetMatchById(roomPlayer.matchId).level);
+		conn.Send(new SceneMessage { sceneName = scene.path, sceneOperation = SceneOperation.LoadAdditive, customHandling = true });
 		Transform start = GetStartPosition();
-		conn.Send(new SceneMessage { sceneName = GameplayScene, sceneOperation = SceneOperation.LoadAdditive, customHandling = true });
-
 		// Instantiate player as child of start position - this will place it in the additive scene
 		// This also lets player object "inherit" pos and rot from start position transform
 		var player = Instantiate(playerPrefab, start).GetComponent<Player>();
@@ -433,10 +436,10 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 			NetworkServer.AddPlayerForConnection(conn, player.gameObject);
 		} else {
 			Debug.Log("ReplacePlayerForConnection " + conn.identity);
-			player.networkRoomPlayer = conn.identity.GetComponent<ExtNetworkRoomPlayer>();
+			player.networkRoomPlayer = roomPlayer;
 			// var oldPlayer = conn.identity.gameObject;
 			NetworkServer.ReplacePlayerForConnection(conn, player.gameObject);
-			SceneManager.MoveGameObjectToScene(player.gameObject, SceneManager.GetSceneByPath(GameplayScene));
+			SceneManager.MoveGameObjectToScene(player.gameObject, scene);
 			// yield return new WaitForEndOfFrame();
 			// Destroy(oldPlayer);
 		}

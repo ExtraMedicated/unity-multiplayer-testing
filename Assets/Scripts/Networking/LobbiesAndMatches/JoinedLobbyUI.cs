@@ -13,6 +13,7 @@ public class JoinedLobbyUI : MonoBehaviour {
 	public Match match;
 
 	[SerializeField] TMP_Text lobbyText;
+	[SerializeField] TMP_Text levelNameText;
 	[SerializeField] Transform playerListPanel;
 	[SerializeField] Button leaveLobbyBtn;
 	[SerializeField] Button startGameBtn;
@@ -67,6 +68,7 @@ public class JoinedLobbyUI : MonoBehaviour {
 
 	void RefreshUI(){
 		lobbyText.text = $"{(match.isPublic ? "":"Private ")}Lobby {match.matchId}";
+		levelNameText.text = $"Level: {match.level}";
 		startGameBtn.gameObject.SetActive(ExtNetworkRoomPlayer.localPlayer.netId == match.lobbyOwnerNetId);
 		RefreshPlayerList();
 	}

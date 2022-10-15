@@ -4,6 +4,7 @@ using System;
 public class LobbyInfo {
 	public string id;
 	// public string name;
+	public string levelName;
 	public string connectionString;
 	public uint currentMembers;
 	public uint maxMembers;

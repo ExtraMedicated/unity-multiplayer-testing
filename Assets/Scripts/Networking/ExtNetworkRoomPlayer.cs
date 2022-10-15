@@ -88,7 +88,7 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 		if (NetworkServer.active){
 			if (matchId != null){
 				Debug.Log($"ServerDisconnect | matchId = {matchId}");
-				MatchManager2.instance.RemovePlayerFromMatch(this, matchId);
+				MatchManager.instance.RemovePlayerFromMatch(this, matchId);
 				matchId = null;
 			}
 			TargetDisconnectGame();
@@ -170,21 +170,22 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 		// Additively load game scene.
 		// SceneManager.LoadScene("Game", LoadSceneMode.Additive);
 		Camera.main.gameObject.SetActive(false);
-		// SceneManager.LoadSceneAsync("Game", LoadSceneMode.Additive).completed += (h) => {
-		// 	Debug.Log("---- Game scene loaded ----");
-		// 	var points = GameObject.FindObjectsOfType<NetworkStartPosition>();
-		// 	if (points.Length > 0){
-		// 		var p = points[UnityEngine.Random.Range(0, points.Length)];
-		// 		transform.position = p.transform.position;
-		// 		transform.rotation = p.transform.rotation;
-		// 	}
-		// 	// gameObject.SetActive(true);
-			NetworkClient.Send(new CreateGamePlayerMessage{
-				name = name,
-				color = Random.ColorHSV(), //color,
-			});
-		//	// UILobby.instance.gameObject.SetActive(false);
-		// };
+		SceneManager.LoadSceneAsync(MatchManager.instance.GetMatchById(matchId).level, LoadSceneMode.Additive).completed += (h) => {
+			// Debug.Log("---- Game scene loaded ----");
+			Debug.Log("---- Level scene loaded ----");
+			var points = GameObject.FindObjectsOfType<NetworkStartPosition>();
+			if (points.Length > 0){
+				var p = points[UnityEngine.Random.Range(0, points.Length)];
+				transform.position = p.transform.position;
+				transform.rotation = p.transform.rotation;
+			}
+			// // gameObject.SetActive(true);
+			// NetworkClient.Send(new CreateGamePlayerMessage{
+			// 	name = name,
+			// 	color = Random.ColorHSV(), //color,
+			// });
+			// // UILobby.instance.gameObject.SetActive(false);
+		};
 	}
 
 	#endregion

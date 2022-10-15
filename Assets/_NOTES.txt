@@ -11,3 +11,13 @@ Need to be able to find private lobby.
 
 
 PlayFab lobby invitations?
+
+
+
+
+ExtNetworkRoomPlayer is the class that represents a connected player.
+A Match has a list of ExtNetworkRoomPlayers.
+MatchManager handles the logic for creating matches and adding/removing players, and it holds a list of matches which is synced to all clients.
+In the room scene, LobbyUtility works with the MatchManager to control the UI and send messages to the server to create, find, join, and leave matches.
+
+The client sends a BeginGameMessage with the match ID to the server, then the MatchManager finds the match and tells each of the ExtNetworkRoomPlayers in that match to call their StartGame function on the client.

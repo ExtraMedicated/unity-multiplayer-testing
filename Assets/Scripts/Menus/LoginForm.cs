@@ -55,7 +55,6 @@ public class LoginForm : MonoBehaviour {
 		networkManager._OnClientConnect += OnClientConnect;
 		networkManager._OnClientDisconnect += OnClientDisconnect;
 		networkManager._OnClientError += OnClientError;
-		// networkManager._OnStopClient += OnStopClient;
 	}
 
 	void UpdateTransport(){
@@ -68,9 +67,8 @@ public class LoginForm : MonoBehaviour {
 	}
 
 	void OnEnable(){
-		// Don't bind event handlers until the login form is active, and remove them when it goes inactive.
+		// Don't bind authenticator event handlers until the login form is active, and remove them when it goes inactive.
 		// Authenticator is unlinked from the manager when clicking single player button.
-
 		// Make sure authenticator is set up for multiplayer.
 		if (networkManager.authenticator == null) {
 			networkManager.authenticator = GameObject.FindObjectOfType<NewNetworkAuthenticator>();
@@ -85,7 +83,6 @@ public class LoginForm : MonoBehaviour {
 			networkAuthenticator.ClientAuthenticateEvent += AuthenticateClient;
 			networkAuthenticator.AuthResponseEvent += OnAuthResponse;
 			networkAuthenticator.OnClientAuthenticated.AddListener(AuthSuccess);
-			// networkAuthenticator.DisplayMessage += DisplayMessage;
 		}
 	}
 
@@ -94,7 +91,6 @@ public class LoginForm : MonoBehaviour {
 			networkAuthenticator.AuthErrorEvent -= OnLoginError;
 			networkAuthenticator.ClientAuthenticateEvent -= AuthenticateClient;
 			networkAuthenticator.AuthResponseEvent -= OnAuthResponse;
-			// networkAuthenticator.DisplayMessage -= DisplayMessage;
 		}
 		// Reverse DontDestroyOnLoad
 		SceneManager.MoveGameObjectToScene(menuRootCanvas, SceneManager.GetActiveScene());
@@ -106,7 +102,6 @@ public class LoginForm : MonoBehaviour {
 		networkManager._OnClientConnect -= OnClientConnect;
 		networkManager._OnClientDisconnect -= OnClientDisconnect;
 		networkManager._OnClientError -= OnClientError;
-		// networkManager._OnStopClient -= OnStopClient;
 	}
 
 
@@ -130,9 +125,6 @@ public class LoginForm : MonoBehaviour {
 	void OnClientError(Exception exception){
 		DisplayMessage(exception.Message, "red");
 	}
-	// void OnStopClient(){
-	// 	DisplayMessage("Client stopped");
-	// }
 	void DisplayMessage(string text, string color = ""){
 		messageText.text = !string.IsNullOrEmpty(color) ? $"<color={color}>{text}</color>" : text;
 	}
@@ -253,7 +245,8 @@ public class LoginForm : MonoBehaviour {
 
 	public void LoginRemoteUser(){
 		NetworkConfig.UseOnlineConfig(networkManager, transport);
-		authenticationMode = AuthenticationMode.CustomID;
+		authenticationMode = AuthenticationMode.Local; //<-Use this line to skip PlayFab login.
+		// authenticationMode = AuthenticationMode.CustomID; //<-Use this line to log in with PlayFab.
 		DisplayMessage("Starting client...");
 		networkManager.StartClient();
 	}

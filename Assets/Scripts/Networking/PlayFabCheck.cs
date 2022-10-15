@@ -13,17 +13,21 @@ public class PlayFabCheck : MonoBehaviour {
 
 	void Start(){
 		var authInfo = NetworkClient.connection?.authenticationData as AuthenticationInfo;
-		// If user is not logged in through PlayFab, show the default lobby UI.
-		// Debug.Log($"----------- Entity ID: {authInfo?.EntityId}, Session: {authInfo?.SessionTicket}");
-		if (authInfo != null && !string.IsNullOrEmpty(authInfo.SessionTicket)){
-			Debug.Log("Using PlayFab");
-			networkRoomManager.showRoomGUI = false;
-			playfabOnlyObjects.ForEach(obj => obj.SetActive(true));
-		} else {
-			Debug.Log("Not Using PlayFab");
-			networkRoomManager.showRoomGUI = true;
-			playfabOnlyObjects.ForEach(obj => obj.SetActive(false));
-		}
+		// // If user is not logged in through PlayFab, show the default lobby UI.
+		// // Debug.Log($"----------- Entity ID: {authInfo?.EntityId}, Session: {authInfo?.SessionTicket}");
+		// if (authInfo != null && !string.IsNullOrEmpty(authInfo.SessionTicket)){
+		// 	Debug.Log("Using PlayFab");
+		// 	networkRoomManager.showRoomGUI = false;
+		// 	playfabOnlyObjects.ForEach(obj => obj.SetActive(true));
+		// } else {
+		// 	Debug.Log("Not Using PlayFab");
+		// 	networkRoomManager.showRoomGUI = true;
+		// 	playfabOnlyObjects.ForEach(obj => obj.SetActive(false));
+		// }
+
+		// ...On second thought, screw the default UI.
+		networkRoomManager.showRoomGUI = false;
+		playfabOnlyObjects.ForEach(obj => obj.SetActive(true));
 	}
 
 }

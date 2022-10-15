@@ -69,7 +69,7 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 
 	}
 
-	// Call this from the client.
+	// Call this on the client.
 	public void QuitGame(){
 		CmdDisconnectGame();
 	}
@@ -86,7 +86,7 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 
 	void ServerDisconnect () {
 		if (NetworkServer.active){
-			if (matchId != null){
+			if (!string.IsNullOrEmpty(matchId)){
 				Debug.Log($"ServerDisconnect | matchId = {matchId}");
 				MatchManager.instance.RemovePlayerFromMatch(this, matchId);
 				matchId = null;

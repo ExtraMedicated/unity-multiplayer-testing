@@ -8,7 +8,7 @@ using PlayFab.Multiplayer;
 // From: https://www.youtube.com/watch?v=qkoZ7d6eQ8k&list=PLDI3FQoanpm1X-HQI-SVkPqJEgcRwtu7M&index=3
 public class AutostartServer : MonoBehaviour
 {
-	NetworkManager networkManager;
+	ExtNetworkRoomManager networkManager;
 	TransportHelper transport;
 	[SerializeField] GameObject agentListener;
 	[SerializeField] GameObject pfEventProcessorPrefab;
@@ -16,7 +16,7 @@ public class AutostartServer : MonoBehaviour
 	public bool forceServerMode;
 	public bool usePlayFab;
 	void Awake() {
-		networkManager = GameObject.FindObjectOfType<NetworkManager>();
+		networkManager = GameObject.FindObjectOfType<ExtNetworkRoomManager>();
 		transport = networkManager.GetComponent<TransportHelper>();
 	}
 	void Start(){
@@ -35,6 +35,7 @@ public class AutostartServer : MonoBehaviour
 			// Debug.Log($"port {transport.GetPort()}");
 		} else {
 			Debug.Log("==========================================\n Server Build \n==========================================");
+			networkManager.gameMode = ExtNetworkRoomManager.GameMode.Multiplayer;
 			#if ENABLE_PLAYFABSERVER_API
 			if (usePlayFab){
 				// Set offline scene to null so that it doesn't try to restart the server.

@@ -9,10 +9,9 @@ using PlayFab.Multiplayer;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+// Some parts of this come from https://youtu.be/w0Dzb4axdcw?list=PLDI3FQoanpm1X-HQI-SVkPqJEgcRwtu7M
 public class MatchManager : NetworkBehaviour {
 	public static MatchManager instance;
-
-	// List<Match> matches = new List<Match>();
 	public readonly SyncDictionary<string, Match> matches = new SyncDictionary<string, Match>();
 
 	public Action<Match> OnAddMatch;
@@ -222,7 +221,7 @@ public class MatchManager : NetworkBehaviour {
 	public void BeginGame(NetworkConnectionToClient conn, BeginGameMessage msg){
 		Camera.main.gameObject.SetActive(false);
 		// Might need to prevent something in case two different games are started at the same time.
-		// Not sure what yet, though.
+		// Not yet sure what, though.
 
 		StartCoroutine(BeginGameEnumerator(msg));
 		// SceneManager.LoadSceneAsync("Game", LoadSceneMode.Additive).completed += (h) => {

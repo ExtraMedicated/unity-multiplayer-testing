@@ -28,12 +28,7 @@ public class AutostartServer : MonoBehaviour
 		transport.SetPort(NetworkConfig.OnlinePort);
 
 		// Telepathy.Log.Info = (msg) => {}; // Disable logging info from telepathy transport.
-
-		if (!Application.isBatchMode && !forceServerMode){
-			// Debug.Log("==========================================\n Client Build \n==========================================");
-			// Debug.Log($"networkAddress {networkManager.networkAddress}");
-			// Debug.Log($"port {transport.GetPort()}");
-		} else {
+		if (Application.isBatchMode || forceServerMode){
 			Debug.Log("==========================================\n Server Build \n==========================================");
 			networkManager.gameMode = ExtNetworkRoomManager.GameMode.Multiplayer;
 			#if ENABLE_PLAYFABSERVER_API

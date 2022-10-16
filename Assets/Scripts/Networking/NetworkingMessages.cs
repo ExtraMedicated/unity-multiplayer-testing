@@ -92,8 +92,15 @@ public struct FindLobbiesResponse : NetworkMessage {
 	public List<Match> matches;
 }
 
-
-
 public struct BeginGameMessage : NetworkMessage {
-	public string lobbyId;
+	public string matchId;
+}
+
+public struct StopGameMessage : NetworkMessage {
+	public string matchId;
+	public uint netId;
+	public StopGameMessage(string matchId, uint netId){
+		this.matchId = matchId;
+		this.netId = netId;
+	}
 }

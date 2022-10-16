@@ -10,7 +10,7 @@ public class Player : NetworkBehaviour
 {
 	Rigidbody _rigidbody;
 	[SerializeField] CinemachineVirtualCamera virtualCamera;
-	internal ExtNetworkRoomPlayer networkRoomPlayer;
+	[SyncVar] internal ExtNetworkRoomPlayer networkRoomPlayer;
 	internal ExtNetworkRoomManager networkManager;
 	CameraMovement cameraMovement;
 
@@ -108,24 +108,45 @@ public class Player : NetworkBehaviour
 
 	void Update()
 	{
-		// base.Update();
 		if (!NetworkClient.isConnected || !isLocalPlayer)
 			return;
 
 		if (hasAuthority && Input.GetKeyDown(KeyCode.Escape)){
-			networkRoomPlayer.QuitGame();
+			// ExtNetworkRoomPlayer.localPlayer?.QuitGame();
+			// if (networkRoomPlayer != null){
+			// 	networkRoomPlayer.QuitGame();
+			// // } else if (NetworkClient.isHostClient) {
+			// // 	networkManager.StopHost();
+			// }
+
+			if (!string.IsNullOrEmpty(ExtNetworkRoomPlayer.localPlayer?.matchId)){
+				Debug.Log("Send StopGameMessage");
+				NetworkClient.Send(new StopGameMessage(ExtNetworkRoomPlayer.localPlayer.matchId, ExtNetworkRoomPlayer.localPlayer.netId));
+			} else if (NetworkClient.isHostClient) {
+				networkManager.StopHost();
+			}
 			return;
 		}
 
 		HandleInput();
 	}
 
+	// public void TriggerStopGameFromServer(){
+	// 	Debug.Log("TriggerStopGameFromServer");
+	// 	TargetStopGame();
+	// 	// Destroy after a delay. I don't know if the delay is needed, but I have a feeling that destroying this immediately could prevent the RPC from working.
+	// 	Destroy(gameObject, 1);
+	// }
+
+	// [TargetRpc]
+	// void TargetStopGame(){
+	// 	ExtNetworkRoomPlayer.localPlayer.StopGame();
+	// }
+
 	void HandleInput(){
 		if (inputChanged){
 			if (isUpBtnPressed){
 				CmdJump();
-			} else {
-				//
 			}
 		}
 		inputChanged = false;

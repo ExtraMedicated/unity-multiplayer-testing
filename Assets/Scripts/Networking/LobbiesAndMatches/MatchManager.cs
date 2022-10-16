@@ -49,6 +49,27 @@ public class MatchManager : NetworkBehaviour {
 			RemoveServerEventHandlers();
 		}
 	}
+	void AddServerEventHandlers(){
+		Debug.Log("MatchManager.AddEventHandlers");
+		NetworkServer.RegisterHandler<CreateMatchRequest>(CreateMatch);
+		NetworkServer.RegisterHandler<AddPlayerToMatchRequest>(AddPlayerToMatch);
+		NetworkServer.RegisterHandler<RemovePlayerFromMatchMessage>(RemovePlayerFromMatch);
+		NetworkServer.RegisterHandler<BeginGameMessage>(BeginGame);
+		NetworkServer.RegisterHandler<StopGameMessage>(EndGame);
+		NetworkServer.RegisterHandler<FindLobbiesRequest>(GetLobbies);
+		networkManager.OnPlayerRemoved += OnPlayerDisconnected;
+	}
+
+	void RemoveServerEventHandlers(){
+		Debug.Log("MatchManager.RemoveEventHandlers");
+		NetworkServer.UnregisterHandler<CreateMatchRequest>();
+		NetworkServer.UnregisterHandler<AddPlayerToMatchRequest>();
+		NetworkServer.UnregisterHandler<RemovePlayerFromMatchMessage>();
+		NetworkServer.UnregisterHandler<BeginGameMessage>();
+		NetworkServer.UnregisterHandler<StopGameMessage>();
+		NetworkServer.UnregisterHandler<FindLobbiesRequest>();
+		networkManager.OnPlayerRemoved -= OnPlayerDisconnected;
+	}
 
 	void OnMatchListChange(SyncDictionary<string, Match>.Operation op, string key, Match item){
 		switch (op)
@@ -71,26 +92,6 @@ public class MatchManager : NetworkBehaviour {
 				throw new NotImplementedException();
 				// break;
 		}
-	}
-
-	void AddServerEventHandlers(){
-		Debug.Log("MatchManager.AddEventHandlers");
-		NetworkServer.RegisterHandler<CreateMatchRequest>(CreateMatch);
-		NetworkServer.RegisterHandler<AddPlayerToMatchRequest>(AddPlayerToMatch);
-		NetworkServer.RegisterHandler<RemovePlayerFromMatchMessage>(RemovePlayerFromMatch);
-		NetworkServer.RegisterHandler<BeginGameMessage>(BeginGame);
-		NetworkServer.RegisterHandler<FindLobbiesRequest>(GetLobbies);
-		networkManager.OnPlayerRemoved += OnPlayerDisconnected;
-	}
-
-	void RemoveServerEventHandlers(){
-		Debug.Log("MatchManager.RemoveEventHandlers");
-		NetworkServer.UnregisterHandler<CreateMatchRequest>();
-		NetworkServer.UnregisterHandler<AddPlayerToMatchRequest>();
-		NetworkServer.UnregisterHandler<RemovePlayerFromMatchMessage>();
-		NetworkServer.UnregisterHandler<BeginGameMessage>();
-		NetworkServer.UnregisterHandler<FindLobbiesRequest>();
-		networkManager.OnPlayerRemoved -= OnPlayerDisconnected;
 	}
 
 	public Match GetMatchById(string matchId){
@@ -181,87 +182,111 @@ public class MatchManager : NetworkBehaviour {
 		RemovePlayerFromMatch(msg.networkPlayer, msg.matchId);
 	}
 
-	public void RemovePlayerFromMatch(ExtNetworkRoomPlayer networkPlayer, string matchId){
+	public void RemovePlayerFromMatch(ExtNetworkRoomPlayer networkRoomPlayer, string matchId){
 		Debug.Log("RemovePlayerFromMatch");
-		if (networkPlayer.matchId != matchId){
+		if (networkRoomPlayer.matchId != matchId){
 			Debug.LogError($"RemovePlayerFromMatch error: Lobby ID mismatch.");
 		}
-		if (matches.ContainsKey(networkPlayer.matchId)){
-			var match = matches[networkPlayer.matchId];
+		if (matches.ContainsKey(networkRoomPlayer.matchId)){
+			var match = matches[networkRoomPlayer.matchId];
 			// var temp = match.players.Select(p => p.connectionToClient);
-			match.players.Remove(networkPlayer);
+			if (networkRoomPlayer.gamePlayer != null){
+				Destroy(networkRoomPlayer.gamePlayer.gameObject);
+			}
+			if (match.players.Remove(networkRoomPlayer)){
+				Debug.Log("<color=green>Successfully removed player</color>");
+			}
 
 			if (match.players.Count > 0){
 				// Make sure there is a lobby owner.
 				match.lobbyOwnerNetId = match.players[0].netId;
 			}
 
-			networkPlayer.matchId = null;
+			networkRoomPlayer.matchId = null;
 
-			RpcPlayerLeft(networkPlayer, match);
-			// matches[matchId] = match; // Triggers the update, but I think I'd rather have the RPC take care of this for greater control.
+			RpcPlayerLeft(networkRoomPlayer, match);
+			// matches[matchId] = match; //This triggers the sync, but I think I'd rather have the RPC take care of this for greater control.
 			if (match.players.Count == 0){
 				Debug.Log("Removing lobby from list");
-				matches.Remove(match.matchId);
+				RemoveMatch(match);
 			}
 		} else {
-			Debug.LogError($"RemovePlayerFromMatch error: Lobby ID ({networkPlayer.matchId}) not found.");
+			Debug.LogError($"RemovePlayerFromMatch error: Lobby ID ({networkRoomPlayer.matchId}) not found.");
+		}
+	}
+
+	private void RemoveMatch(Match match){
+		CleanupInProgressMatch(match, true);
+	}
+	private void CleanupInProgressMatch(Match match, bool isRemovingMatch){
+		// If the match ends, should it unload the scene?
+		// What if other matches use the same scene?
+		if (match.isInProgress){
+			match.isInProgress = false;
+			SceneManager.UnloadSceneAsync(match.level);
+		}
+		if (isRemovingMatch){
+			matches.Remove(match.matchId);
+		} else {
+			matches[match.matchId] = match;
 		}
 	}
 
 	private void OnPlayerDisconnected(ExtNetworkRoomPlayer roomPlayer)
 	{
-		if (!string.IsNullOrEmpty(roomPlayer.matchId)){
+		if (roomPlayer != null && !string.IsNullOrEmpty(roomPlayer.matchId)){
 			Debug.Log($"Try to remove player from match {roomPlayer.matchId}");
 			RemovePlayerFromMatch(roomPlayer, roomPlayer.matchId);
 		}
 	}
 
 	bool gameSceneLoaded;
-	public void BeginGame(NetworkConnectionToClient conn, BeginGameMessage msg){
-		Camera.main.gameObject.SetActive(false);
-		// Might need to prevent something in case two different games are started at the same time.
-		// Not yet sure what, though.
-
-		StartCoroutine(BeginGameEnumerator(msg));
-		// SceneManager.LoadSceneAsync("Game", LoadSceneMode.Additive).completed += (h) => {
-		// 	Debug.Log("---- Game scene loaded ----");
-		// 	if (matches.ContainsKey(msg.lobbyId)){
-		// 		var match = matches[msg.lobbyId];
-		// 		// Set match to in-progress.
-		// 		match.isInProgress = true;
-
-		// 		// Tell each of the players in the match to call the start game function.
-		// 		// I'm guessing the players then need to tell the server when they are ready?
-		// 		foreach(var p in matches[msg.lobbyId].players){
-		// 			SceneManager.MoveGameObjectToScene(p.gameObject, SceneManager.GetSceneByName("Game"));
-		// 			var player = p.GetComponent<ExtNetworkRoomPlayer>();
-		// 			player.StartGame();
-		// 		}
-		// 		matches[msg.lobbyId] = match;
-		// 	}
-		// };
+	void BeginGame(NetworkConnectionToClient conn, BeginGameMessage msg){
+		StartCoroutine(BeginGameEnumerator(conn.identity.netId, msg));
 	}
 
-	IEnumerator BeginGameEnumerator(BeginGameMessage msg){
-		if (!gameSceneLoaded){
-			yield return SceneManager.LoadSceneAsync("Game", LoadSceneMode.Additive);
-			gameSceneLoaded = true;
-		}
-		if (matches.ContainsKey(msg.lobbyId)){
-			var match = matches[msg.lobbyId];
+	IEnumerator BeginGameEnumerator(uint sendersNetId, BeginGameMessage msg){
+		if (matches.ContainsKey(msg.matchId)){
+			var match = matches[msg.matchId];
+			// Prevent anyone except the lobby owner from starting the match.
+			if (sendersNetId != match.lobbyOwnerNetId) {
+				yield break;
+			}
+			if (!gameSceneLoaded){
+				// Might need to prevent something in case two different games are started at the same time.
+				// Not yet sure what, though.
+				yield return SceneManager.LoadSceneAsync("Game", LoadSceneMode.Additive);
+				gameSceneLoaded = true;
+			}
+
 			yield return SceneManager.LoadSceneAsync(match.level, LoadSceneMode.Additive);
 			// Set match to in-progress.
 			match.isInProgress = true;
 
 			// Tell each of the players in the match to call the start game function.
 			// I'm guessing the players then need to tell the server when they are ready?
-			foreach(var p in matches[msg.lobbyId].players){
-				// SceneManager.MoveGameObjectToScene(p.gameObject, SceneManager.GetSceneByName(match.level));
-				var player = p.GetComponent<ExtNetworkRoomPlayer>();
-				player.StartGame();
+			foreach(var p in matches[msg.matchId].players){
+				p.TriggerStartGameFromServer();
 			}
-			matches[msg.lobbyId] = match;
+			matches[msg.matchId] = match;
+		}
+	}
+
+	void EndGame(NetworkConnectionToClient conn, StopGameMessage msg){
+		Debug.Log("Got StopGameMessage " + msg.matchId);
+		if (matches.ContainsKey(msg.matchId)){
+			var match = matches[msg.matchId];
+			// Prevent anyone except the lobby owner from ending the match.
+			// TODO: Will this still work after the lobby owner disconnects? Need to test.
+			if (msg.netId != match.lobbyOwnerNetId) {
+				return;
+			}
+			// Tell each of the players in the match to call the stop game function.
+			foreach(var p in matches[msg.matchId].players){
+				p.TriggerStopGameFromServer();
+			}
+			SceneManager.UnloadSceneAsync(match.level);
+			CleanupInProgressMatch(match, false);
 		}
 	}
 

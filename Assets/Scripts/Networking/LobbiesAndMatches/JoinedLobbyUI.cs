@@ -92,7 +92,7 @@ public class JoinedLobbyUI : MonoBehaviour {
 		// 	ExtNetworkRoomPlayer.localPlayer.playerEntityKey,
 		// 	updateData
 		// );
-		NetworkClient.Send(new BeginGameMessage {lobbyId = match.matchId});
+		NetworkClient.Send(new BeginGameMessage {matchId = match.matchId});
 	}
 
 	public void LeaveLobby(){

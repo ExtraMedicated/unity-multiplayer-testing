@@ -13,6 +13,10 @@ Need to be able to find private lobby.
 PlayFab lobby invitations?
 
 
+What is the proper way to quit a game?
+
+
+What if multiple matches use the same scene?
 
 
 ExtNetworkRoomPlayer is the class that represents a connected player.
@@ -21,3 +25,8 @@ MatchManager handles the logic for creating matches and adding/removing players,
 In the room scene, LobbyUtility works with the MatchManager to control the UI and send messages to the server to create, find, join, and leave matches.
 
 The client sends a BeginGameMessage with the match ID to the server, then the MatchManager finds the match and tells each of the ExtNetworkRoomPlayers in that match to call their StartGame function on the client.
+
+When game player is added, ReplacePlayerForConnection is called to give control to the game player.
+When ending the game or disconnecting, it's called again to give control back to the room player.
+
+----------------------------------

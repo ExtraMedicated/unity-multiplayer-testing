@@ -35,6 +35,7 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 	public PFEntityKey playerEntityKey;
 	[SyncVar] public string playerName;
 	[SyncVar] public string matchId;
+	[SyncVar] public Player gamePlayer;
 	// public Lobby lobby;
 
 
@@ -71,11 +72,19 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 
 	// Call this on the client.
 	public void QuitGame(){
-		CmdDisconnectGame();
+		Debug.Log("<color=red>QuitGame</color>");
+		// I don't fukin know what I'm doing.
+		// if (hasAuthority){
+			CmdDisconnectGame();
+		// } else {
+		// 	ClientDisconnect();
+		// }
+		// CmdDisconnectGame();
 	}
 
 	[Command]
 	void CmdDisconnectGame () {
+		Debug.Log("<color=red>CmdDisconnectGame</color>");
 		if (networkManager.gameMode == ExtNetworkRoomManager.GameMode.SinglePlayer){
 			// This is for single player mode (ie, running as host + client).
 			networkManager.StopHost();
@@ -157,9 +166,36 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 	/// </summary>
 	public override void OnStopAuthority() { }
 
-	public void StartGame(){
+	public void TriggerStartGameFromServer(){
 		TargetBeginGame();
 	}
+
+	// [TargetRpc]
+	// void TargetBeginGame(){
+
+	// 	// Turn off lobby canvas.
+	// 	FindObjectOfType<JoinedLobbyUI>().transform.root.gameObject.SetActive(false);
+
+	// 	// Additively load game scene.
+	// 	// SceneManager.LoadScene("Game", LoadSceneMode.Additive);
+	// 	Camera.main.gameObject.SetActive(false);
+	// 	SceneManager.LoadSceneAsync(MatchManager.instance.GetMatchById(matchId).level, LoadSceneMode.Additive).completed += (h) => {
+	// 		// Debug.Log("---- Game scene loaded ----");
+	// 		Debug.Log("---- Level scene loaded ----");
+	// 		var points = GameObject.FindObjectsOfType<NetworkStartPosition>();
+	// 		if (points.Length > 0){
+	// 			var p = points[UnityEngine.Random.Range(0, points.Length)];
+	// 			transform.position = p.transform.position;
+	// 			transform.rotation = p.transform.rotation;
+	// 		}
+	// 		// // gameObject.SetActive(true);
+	// 		// NetworkClient.Send(new CreateGamePlayerMessage{
+	// 		// 	name = name,
+	// 		// 	color = Random.ColorHSV(), //color,
+	// 		// });
+	// 		// // UILobby.instance.gameObject.SetActive(false);
+	// 	};
+	// }
 
 	[TargetRpc]
 	void TargetBeginGame(){
@@ -167,26 +203,48 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 		// Turn off lobby canvas.
 		FindObjectOfType<JoinedLobbyUI>().transform.root.gameObject.SetActive(false);
 
-		// Additively load game scene.
-		// SceneManager.LoadScene("Game", LoadSceneMode.Additive);
-		Camera.main.gameObject.SetActive(false);
-		SceneManager.LoadSceneAsync(MatchManager.instance.GetMatchById(matchId).level, LoadSceneMode.Additive).completed += (h) => {
-			// Debug.Log("---- Game scene loaded ----");
-			Debug.Log("---- Level scene loaded ----");
-			var points = GameObject.FindObjectsOfType<NetworkStartPosition>();
-			if (points.Length > 0){
-				var p = points[UnityEngine.Random.Range(0, points.Length)];
-				transform.position = p.transform.position;
-				transform.rotation = p.transform.rotation;
-			}
-			// // gameObject.SetActive(true);
-			// NetworkClient.Send(new CreateGamePlayerMessage{
-			// 	name = name,
-			// 	color = Random.ColorHSV(), //color,
-			// });
-			// // UILobby.instance.gameObject.SetActive(false);
-		};
+		NetworkClient.Send(new CreateGamePlayerMessage{
+			name = name,
+			color = Random.ColorHSV(), //color,
+		});
 	}
+
+	public void TriggerStopGameFromServer(){
+		Debug.Log("TriggerStopGameFromServer");
+		// Give control back to the room player.
+		NetworkServer.ReplacePlayerForConnection(gamePlayer.netIdentity.connectionToClient, gameObject);
+		TargetStopGame();
+		gamePlayer = null;
+		// If the game player is in the level scene, then I don't think I'd need to destroy it separately here.
+	}
+
+	[TargetRpc]
+	void TargetStopGame(){
+		// Turn on lobby canvas.
+		var canvas = FindObjectOfType<JoinedLobbyUI>(true).transform.root.gameObject;
+		Debug.Log("TargetStopGame", canvas);
+		SceneManager.UnloadSceneAsync(MatchManager.instance.GetMatchById(matchId).level);
+		// // If the game player is in the level scene, then I don't think I'd need to destroy it separately like this.
+		// if (gamePlayer != null){
+		// 	Debug.Log("Destroy(gamePlayer.gameObject);");
+		// 	Destroy(gamePlayer.gameObject);
+		// }
+		canvas.SetActive(true);
+	}
+	// Called from the player object.
+	// public void StopGame(){
+	// 	// Turn on lobby canvas.
+	// 	var canvas = FindObjectOfType<JoinedLobbyUI>(true).transform.root.gameObject;
+	// 	Debug.Log("TargetStopGame", canvas);
+	// 	SceneManager.UnloadSceneAsync(MatchManager.instance.GetMatchById(matchId).level);
+
+	// 	// If the game player is in the level scene, then I don't think I'd need to destroy it separately like this.
+	// 	if (gamePlayer != null){
+	// 		Debug.Log("Destroy(gamePlayer.gameObject);");
+	// 		Destroy(gamePlayer.gameObject);
+	// 	}
+	// 	canvas.SetActive(true);
+	// }
 
 	#endregion
 

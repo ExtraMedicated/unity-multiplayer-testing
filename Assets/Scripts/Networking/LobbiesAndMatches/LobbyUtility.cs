@@ -25,7 +25,7 @@ public class LobbyUtility : MonoBehaviour {
 	[SerializeField] TMP_Text statusMessage;
 
 	// Coroutine updateMatchesCoroutuine;
-	bool fetchingMatches;
+	// bool fetchingMatches;
 
 	void Awake () {
 		if (instance == null){
@@ -213,7 +213,7 @@ public class LobbyUtility : MonoBehaviour {
 
 	#region Find
 	public void FindLobbies(){
-		fetchingMatches = true;
+		// fetchingMatches = true;
 		// findLobbiesButton.interactable = false;
 		NetworkClient.Send(new FindLobbiesRequest());
 		// PlayFabMultiplayer.FindLobbies(ExtNetworkRoomPlayer.localPlayer.playerEntityKey, lobbySearchConfig);

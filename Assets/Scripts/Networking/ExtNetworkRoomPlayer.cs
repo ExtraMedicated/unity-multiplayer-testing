@@ -166,10 +166,6 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 	/// </summary>
 	public override void OnStopAuthority() { }
 
-	public void TriggerStartGameFromServer(){
-		TargetBeginGame();
-	}
-
 	// [TargetRpc]
 	// void TargetBeginGame(){
 
@@ -198,7 +194,7 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 	// }
 
 	[TargetRpc]
-	void TargetBeginGame(){
+	public void TargetBeginGame(){
 
 		// Turn off lobby canvas.
 		FindObjectOfType<JoinedLobbyUI>().transform.root.gameObject.SetActive(false);

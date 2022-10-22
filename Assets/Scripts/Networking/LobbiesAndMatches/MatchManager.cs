@@ -266,7 +266,7 @@ public class MatchManager : NetworkBehaviour {
 			// Tell each of the players in the match to call the start game function.
 			// I'm guessing the players then need to tell the server when they are ready?
 			foreach(var p in matches[msg.matchId].players){
-				p.TriggerStartGameFromServer();
+				p.TargetBeginGame();
 			}
 			matches[msg.matchId] = match;
 		}

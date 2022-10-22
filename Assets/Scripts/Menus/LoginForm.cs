@@ -245,8 +245,11 @@ public class LoginForm : MonoBehaviour {
 
 	public void LoginRemoteUser(){
 		NetworkConfig.UseOnlineConfig(networkManager, transport);
-		authenticationMode = AuthenticationMode.Local; //<-Use this line to skip PlayFab login.
-		// authenticationMode = AuthenticationMode.CustomID; //<-Use this line to log in with PlayFab.
+		if (NetworkConfig.Instance.loginWithPlayFab){
+			authenticationMode = AuthenticationMode.CustomID; // Use this line to log in with PlayFab.
+		} else {
+			authenticationMode = AuthenticationMode.Local; // Use this line to skip PlayFab login.
+		}
 		DisplayMessage("Starting client...");
 		networkManager.StartClient();
 	}

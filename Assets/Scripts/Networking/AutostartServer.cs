@@ -14,7 +14,6 @@ public class AutostartServer : MonoBehaviour
 	[SerializeField] GameObject pfEventProcessorPrefab;
 
 	public bool forceServerMode;
-	public bool usePlayFab;
 	void Awake() {
 		networkManager = GameObject.FindObjectOfType<ExtNetworkRoomManager>();
 		transport = networkManager.GetComponent<TransportHelper>();

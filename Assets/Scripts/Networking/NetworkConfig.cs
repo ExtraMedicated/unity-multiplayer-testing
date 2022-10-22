@@ -12,9 +12,10 @@ public class NetworkConfig : MonoBehaviour {
 
 	public int localConfigIndex;
 	public int onlineConfigIndex;
+	public bool loginWithPlayFab = true;
 
 	static NetworkConfig instance;
-	static NetworkConfig Instance {
+	public static NetworkConfig Instance {
 		get {
 			if (instance == null){
 				instance = FindObjectOfType<NetworkConfig>();
@@ -56,7 +57,7 @@ public class NetworkConfig : MonoBehaviour {
 
 	public static void ResetOverrides(){
 		Instance.overrideIpAddress = null;
-		instance.overridePort = null;
+		Instance.overridePort = null;
 	}
 
 	[Serializable]

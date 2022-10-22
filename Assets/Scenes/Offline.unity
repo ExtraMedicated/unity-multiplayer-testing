@@ -3706,6 +3706,7 @@ MonoBehaviour:
     Port: 7777
   localConfigIndex: 1
   onlineConfigIndex: 1
+  loginWithPlayFab: 0
 --- !u!4 &1509119475
 Transform:
   m_ObjectHideFlags: 0

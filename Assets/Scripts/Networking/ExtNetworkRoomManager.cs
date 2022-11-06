@@ -23,8 +23,8 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 	}
 	private List<UnityNetworkConnection> _connections = new List<UnityNetworkConnection>();
 
-	public Action<ExtNetworkRoomPlayer> OnPlayerAdded;
-	public Action<ExtNetworkRoomPlayer> OnPlayerRemoved;
+	public UnityEvent<string> OnPlayerAdded;
+	public UnityEvent<string> OnPlayerRemoved;
 
 	public Action<string, ushort> _OnStartClient;
 	public Action _OnClientConnect;
@@ -36,7 +36,7 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 		Multiplayer,
 	}
 	public GameMode gameMode;
-	public GameObject matchManagerPrefab;
+	// public GameObject matchManagerPrefab;
 
 	// [Header("Spawner Setup")]
 	// [Tooltip("Reward Prefab for the Spawner")]
@@ -46,7 +46,7 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 	{
 		base.OnStartServer();
 		// NetworkServer.RegisterHandler<CreateRoomPlayerMessage>(OnCreateRoomPlayer);
-		NetworkServer.RegisterHandler<CreateGamePlayerMessage>(OnCreateGamePlayer);
+		// NetworkServer.RegisterHandler<CreateGamePlayerMessage>(OnCreateGamePlayer);
 	}
 
 	/// <summary>
@@ -83,10 +83,11 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 		// // var sessionInfo = GameObject.FindObjectOfType<SessionInfo>();
 
 		// Debug.Log("sessionInfo.EntityId = " + sessionInfo.EntityId);
-		// var player = conn.identity.GetComponent<ExtNetworkRoomPlayer>();
+		var player = conn.identity.GetComponent<ExtNetworkRoomPlayer>();
+		player.entityId = PlayerEntity.LocalPlayer.entityKey.Id;
 		// player.PlayFabId = sessionInfo.EntityId;
 		// player.PlayerName = sessionInfo.PlayerName;
-		// OnPlayerAdded?.Invoke(player.PlayFabId);
+		OnPlayerAdded?.Invoke(player.entityId);
 		return true;
 	}
 
@@ -98,13 +99,13 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 	public override void OnServerAddPlayer(NetworkConnectionToClient conn)
 	{
 		Debug.Log("OnServerAddPlayer");
-		var authInfo = conn.authenticationData as AuthenticationInfo;
+		// var authInfo = conn.authenticationData as AuthenticationInfo;
 		// Debug.Log("EntityId: " + authInfo?.EntityId);
 		base.OnServerAddPlayer(conn);
 		var roomPlayer = conn.identity.GetComponent<ExtNetworkRoomPlayer>();
 		if (roomPlayer != null){
-			roomPlayer.playerName = authInfo.PlayerName;
-			OnPlayerAdded?.Invoke(roomPlayer);
+			// roomPlayer.playerName = authInfo.PlayerName;
+			OnPlayerAdded?.Invoke(roomPlayer.entityId);
 		}
 	}
 
@@ -132,16 +133,16 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 			// Debug.Log("identity is on game player. room player is " + p.networkRoomPlayer);
 			// First, switch the identity back to the room player so that it gets cleaned up.
 			NetworkServer.ReplacePlayerForConnection(conn, p.networkRoomPlayer.gameObject);
-			OnPlayerRemoved?.Invoke(p.networkRoomPlayer);
+			OnPlayerRemoved?.Invoke(p.networkRoomPlayer.entityId);
 		} else {
 			// Debug.Log("identity is on room player");
-			OnPlayerRemoved?.Invoke(conn.identity.GetComponent<ExtNetworkRoomPlayer>());
+			OnPlayerRemoved?.Invoke(conn.identity.GetComponent<ExtNetworkRoomPlayer>().entityId);
 		}
 	}
 
 	public override void OnRoomStartClient()
 	{
-		var transport = GetComponent<TransportHelper>();
+		var transport = GetComponent<TransportWrapper>();
 		_OnStartClient?.Invoke(networkAddress, transport.GetPort());
 	}
 
@@ -423,38 +424,39 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 	// 	}
 	// }
 
-	void OnCreateGamePlayer(NetworkConnectionToClient conn, CreateGamePlayerMessage msg){
-		Debug.Log("OnCreateGamePlayer");
-		// We have Network Start Positions in first additive scene...pick one
-		var roomPlayer = conn.identity.GetComponent<ExtNetworkRoomPlayer>();
-		var scene = SceneManager.GetSceneByName(MatchManager.instance.GetMatchById(roomPlayer.matchId).level);
-		conn.Send(new SceneMessage { sceneName = scene.path, sceneOperation = SceneOperation.LoadAdditive, customHandling = true });
-		Transform start = GetStartPosition();
-		// Instantiate player as child of start position - this will place it in the additive scene
-		// This also lets player object "inherit" pos and rot from start position transform
-		var player = Instantiate(playerPrefab, start).GetComponent<Player>();
-		// now set parent null to get it out from under the Start Position object
-		player.transform.SetParent(null);
-		player.SetColor(msg.color);
-		player.gameObject.name += msg.name;
-		// // Wait for end of frame before adding the player to ensure Scene Message goes first
-		// yield return new WaitForEndOfFrame();
-		roomPlayer.gamePlayer = player;
+	// void OnCreateGamePlayer(NetworkConnectionToClient conn, CreateGamePlayerMessage msg){
+	// 	Debug.Log("OnCreateGamePlayer");
+	// 	// We have Network Start Positions in first additive scene...pick one
+	// 	var roomPlayer = conn.identity.GetComponent<ExtNetworkRoomPlayer>();
+	// 	// var scene = SceneManager.GetSceneByName(MatchManager.instance.GetMatchById(roomPlayer.matchId).level);
+	// 	var scene = SceneManager.GetSceneByName(GameplayScene);
+	// 	conn.Send(new SceneMessage { sceneName = scene.path, sceneOperation = SceneOperation.LoadAdditive, customHandling = true });
+	// 	Transform start = GetStartPosition();
+	// 	// Instantiate player as child of start position - this will place it in the additive scene
+	// 	// This also lets player object "inherit" pos and rot from start position transform
+	// 	var player = Instantiate(playerPrefab, start).GetComponent<Player>();
+	// 	// now set parent null to get it out from under the Start Position object
+	// 	player.transform.SetParent(null);
+	// 	player.SetColor(msg.color);
+	// 	player.gameObject.name += msg.name;
+	// 	// // Wait for end of frame before adding the player to ensure Scene Message goes first
+	// 	// yield return new WaitForEndOfFrame();
+	// 	roomPlayer.gamePlayer = player;
 
-		// if (conn.identity == null){
-		// 	// TODO: Might need to be able to create a networkPlayer if this is needed.
-		// 	Debug.Log("AddPlayerForConnection " + conn.identity);
-		// 	NetworkServer.AddPlayerForConnection(conn, player.gameObject);
-		// } else {
-			player.networkRoomPlayer = roomPlayer;
-			Debug.Log("ReplacePlayerForConnection " + conn.identity);
-			// var oldPlayer = conn.identity.gameObject;
-			NetworkServer.ReplacePlayerForConnection(conn, player.gameObject);
-			SceneManager.MoveGameObjectToScene(player.gameObject, scene);
-			// yield return new WaitForEndOfFrame();
-			// Destroy(oldPlayer);
-		// }
-	}
+	// 	// if (conn.identity == null){
+	// 	// 	// TODO: Might need to be able to create a networkPlayer if this is needed.
+	// 	// 	Debug.Log("AddPlayerForConnection " + conn.identity);
+	// 	// 	NetworkServer.AddPlayerForConnection(conn, player.gameObject);
+	// 	// } else {
+	// 		player.networkRoomPlayer = roomPlayer;
+	// 		Debug.Log("ReplacePlayerForConnection " + conn.identity);
+	// 		// var oldPlayer = conn.identity.gameObject;
+	// 		NetworkServer.ReplacePlayerForConnection(conn, player.gameObject);
+	// 		SceneManager.MoveGameObjectToScene(player.gameObject, scene);
+	// 		// yield return new WaitForEndOfFrame();
+	// 		// Destroy(oldPlayer);
+	// 	// }
+	// }
 
 	#endregion
 }

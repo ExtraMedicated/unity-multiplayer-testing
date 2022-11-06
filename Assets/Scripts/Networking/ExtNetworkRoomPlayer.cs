@@ -2,6 +2,7 @@ using UnityEngine;
 using Mirror;
 using UnityEngine.SceneManagement;
 using PlayFab.Multiplayer;
+using System;
 
 /*
 	Documentation: https://mirror-networking.gitbook.io/docs/components/network-room-player
@@ -16,10 +17,7 @@ using PlayFab.Multiplayer;
 /// </summary>
 public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 {
-	const string PLAYER_ENTITY_TYPE = "title_player_account";
-	// public string PlayFabId { get; internal set; }
-
-	AuthenticationInfo authInfo;
+	public string entityId;
 	ExtNetworkRoomManager _netMgr;
 	ExtNetworkRoomManager networkManager {
 		get {
@@ -32,7 +30,6 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 
 
 	public static ExtNetworkRoomPlayer localPlayer;
-	public PFEntityKey playerEntityKey;
 	[SyncVar] public string playerName;
 	[SyncVar] public string matchId;
 	[SyncVar] public Player gamePlayer;
@@ -97,7 +94,7 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 		if (NetworkServer.active){
 			if (!string.IsNullOrEmpty(matchId)){
 				Debug.Log($"ServerDisconnect | matchId = {matchId}");
-				MatchManager.instance.RemovePlayerFromMatch(this, matchId);
+				// MatchManager.instance.RemovePlayerFromMatch(this, matchId);
 				matchId = null;
 			}
 			TargetDisconnectGame();
@@ -133,25 +130,25 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 	}
 
 
-	/// <summary>
-	/// Called when the local player object has been set up.
-	/// <para>This happens after OnStartClient(), as it is triggered by an ownership message from the server. This is an appropriate place to activate components or functionality that should only be active for the local player, such as cameras and input.</para>
-	/// </summary>
-	public override void OnStartLocalPlayer() {
-		Debug.Log($"OnStartLocalPlayer {gameObject}");
-		authInfo = NetworkClient.connection?.authenticationData as AuthenticationInfo;
-		// If user is not logged in through PlayFab, show the default lobby UI.
-		if (authInfo != null && !string.IsNullOrEmpty(authInfo.SessionTicket)){
-			Debug.Log("Using PlayFab");
-			playerEntityKey = new PFEntityKey(
-				authInfo.EntityId,
-				PLAYER_ENTITY_TYPE); // PlayFab user's entity key
-			showRoomGUI = false;
-		} else {
-			Debug.Log("Not Using PlayFab");
-		}
-		localPlayer = this;
-	}
+	// /// <summary>
+	// /// Called when the local player object has been set up.
+	// /// <para>This happens after OnStartClient(), as it is triggered by an ownership message from the server. This is an appropriate place to activate components or functionality that should only be active for the local player, such as cameras and input.</para>
+	// /// </summary>
+	// public override void OnStartLocalPlayer() {
+	// 	Debug.Log($"OnStartLocalPlayer {gameObject}");
+	// 	authInfo = NetworkClient.connection?.authenticationData as AuthenticationInfo;
+	// 	// If user is not logged in through PlayFab, show the default lobby UI.
+	// 	if (authInfo != null && !string.IsNullOrEmpty(authInfo.SessionTicket)){
+	// 		Debug.Log("Using PlayFab");
+	// 		playerEntityKey = new PFEntityKey(
+	// 			authInfo.EntityId,
+	// 			PLAYER_ENTITY_TYPE); // PlayFab user's entity key
+	// 		showRoomGUI = false;
+	// 	} else {
+	// 		Debug.Log("Not Using PlayFab");
+	// 	}
+	// 	localPlayer = this;
+	// }
 
 	/// <summary>
 	/// This is invoked on behaviours that have authority, based on context and <see cref="NetworkIdentity.hasAuthority">NetworkIdentity.hasAuthority</see>.
@@ -201,7 +198,7 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 
 		NetworkClient.Send(new CreateGamePlayerMessage{
 			name = name,
-			color = Random.ColorHSV(), //color,
+			color = UnityEngine.Random.ColorHSV(), //color,
 		});
 	}
 
@@ -216,16 +213,17 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 
 	[TargetRpc]
 	void TargetStopGame(){
-		// Turn on lobby canvas.
-		var canvas = FindObjectOfType<JoinedLobbyUI>(true).transform.root.gameObject;
-		Debug.Log("TargetStopGame", canvas);
-		SceneManager.UnloadSceneAsync(MatchManager.instance.GetMatchById(matchId).level);
-		// // If the game player is in the level scene, then I don't think I'd need to destroy it separately like this.
-		// if (gamePlayer != null){
-		// 	Debug.Log("Destroy(gamePlayer.gameObject);");
-		// 	Destroy(gamePlayer.gameObject);
-		// }
-		canvas.SetActive(true);
+		throw new NotImplementedException();
+		// // Turn on lobby canvas.
+		// var canvas = FindObjectOfType<JoinedLobbyUI>(true).transform.root.gameObject;
+		// Debug.Log("TargetStopGame", canvas);
+		// SceneManager.UnloadSceneAsync(MatchManager.instance.GetMatchById(matchId).level);
+		// // // If the game player is in the level scene, then I don't think I'd need to destroy it separately like this.
+		// // if (gamePlayer != null){
+		// // 	Debug.Log("Destroy(gamePlayer.gameObject);");
+		// // 	Destroy(gamePlayer.gameObject);
+		// // }
+		// canvas.SetActive(true);
 	}
 	// Called from the player object.
 	// public void StopGame(){

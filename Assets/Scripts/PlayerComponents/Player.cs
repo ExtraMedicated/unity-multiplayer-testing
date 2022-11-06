@@ -11,7 +11,7 @@ public class Player : NetworkBehaviour
 	Rigidbody _rigidbody;
 	[SerializeField] CinemachineVirtualCamera virtualCamera;
 	[SyncVar] internal ExtNetworkRoomPlayer networkRoomPlayer;
-	internal ExtNetworkRoomManager networkManager;
+	internal NetworkManager networkManager;
 	CameraMovement cameraMovement;
 
 	[SyncVar] public float fuel = 100;
@@ -43,7 +43,7 @@ public class Player : NetworkBehaviour
 		_rigidbody = GetComponent<Rigidbody>();
 		centerX = Screen.width/2;
 		centerY = Screen.height/2;
-		networkManager = FindObjectOfType<ExtNetworkRoomManager>();
+		networkManager = FindObjectOfType<NetworkManager>();
 
 		// if (isServer){
 		// 	playerId = GetInstanceID();
@@ -119,12 +119,12 @@ public class Player : NetworkBehaviour
 			// // 	networkManager.StopHost();
 			// }
 
-			if (!string.IsNullOrEmpty(ExtNetworkRoomPlayer.localPlayer?.matchId)){
-				Debug.Log("Send StopGameMessage");
-				NetworkClient.Send(new StopGameMessage(ExtNetworkRoomPlayer.localPlayer.matchId, ExtNetworkRoomPlayer.localPlayer.netId));
-			} else if (NetworkClient.isHostClient) {
+			// if (!string.IsNullOrEmpty(ExtNetworkRoomPlayer.localPlayer?.matchId)){
+			// 	Debug.Log("Send StopGameMessage");
+			// 	NetworkClient.Send(new StopGameMessage(ExtNetworkRoomPlayer.localPlayer.matchId, ExtNetworkRoomPlayer.localPlayer.netId));
+			// } else if (NetworkClient.isHostClient) {
 				networkManager.StopHost();
-			}
+			// }
 			return;
 		}
 

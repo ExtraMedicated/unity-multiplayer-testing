@@ -99,8 +99,8 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 	public override void OnServerAddPlayer(NetworkConnectionToClient conn)
 	{
 		Debug.Log("OnServerAddPlayer");
-		// var authInfo = conn.authenticationData as AuthenticationInfo;
-		// Debug.Log("EntityId: " + authInfo?.EntityId);
+		var authInfo = conn.authenticationData as AuthenticationInfo;
+		Debug.Log("EntityId: " + authInfo?.EntityId);
 		base.OnServerAddPlayer(conn);
 		var roomPlayer = conn.identity.GetComponent<ExtNetworkRoomPlayer>();
 		if (roomPlayer != null){
@@ -109,14 +109,14 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 		}
 	}
 
-	// public override GameObject OnRoomServerCreateRoomPlayer(NetworkConnectionToClient conn)
-	// {
-	// 	Debug.Log("OnRoomServerCreateRoomPlayer");
-	// 	var player = Instantiate(roomPlayerPrefab.gameObject, Vector3.zero, Quaternion.identity).GetComponent<PlayerInfo>();
-	// 	player.EntityId = (conn.authenticationData as AuthenticationInfo)?.EntityId;
-	// 	Debug.Log("EntityId: " + player.EntityId);
-	// 	return player.gameObject;
-	// }
+	public override GameObject OnRoomServerCreateRoomPlayer(NetworkConnectionToClient conn)
+	{
+		Debug.Log("OnRoomServerCreateRoomPlayer");
+		var player = Instantiate(roomPlayerPrefab.gameObject, Vector3.zero, Quaternion.identity).GetComponent<ExtNetworkRoomPlayer>();
+		player.entityId = (conn.authenticationData as AuthenticationInfo)?.EntityId;
+		Debug.Log("EntityId: " + player.entityId);
+		return player.gameObject;
+	}
 
 	public override void OnRoomServerConnect(NetworkConnectionToClient conn)
 	{
@@ -130,12 +130,12 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 		// The identity might be a game player instead of a room player. Check for that.
 		var p = conn.identity.GetComponent<Player>();
 		if (p != null){
-			// Debug.Log("identity is on game player. room player is " + p.networkRoomPlayer);
+			Debug.Log("identity is on game player. room player is " + p.networkRoomPlayer);
 			// First, switch the identity back to the room player so that it gets cleaned up.
 			NetworkServer.ReplacePlayerForConnection(conn, p.networkRoomPlayer.gameObject);
 			OnPlayerRemoved?.Invoke(p.networkRoomPlayer.entityId);
 		} else {
-			// Debug.Log("identity is on room player");
+			Debug.Log("identity is on room player");
 			OnPlayerRemoved?.Invoke(conn.identity.GetComponent<ExtNetworkRoomPlayer>().entityId);
 		}
 	}

@@ -248,7 +248,15 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 	/// This is a hook that is invoked on all player objects when entering the room.
 	/// <para>Note: isLocalPlayer is not guaranteed to be set until OnStartLocalPlayer is called.</para>
 	/// </summary>
-	public override void OnClientEnterRoom() { Debug.Log($"OnClientEnterRoom {SceneManager.GetActiveScene().path}"); }
+	public override void OnClientEnterRoom() {
+		Debug.Log($"OnClientEnterRoom {SceneManager.GetActiveScene().path} | {networkManager.RoomScene}");
+		if (SceneManager.GetActiveScene().path == networkManager.RoomScene){
+			var lobbyUI = FindObjectOfType<JoinedLobbyUI>();
+			// if (lobbyUI.lobby == null){
+				lobbyUI.LoadLobby(PlayerEntity.LocalPlayer.lobbyId);
+			// }
+		}
+	}
 
 	/// <summary>
 	/// This is a hook that is invoked on all player objects when exiting the room.

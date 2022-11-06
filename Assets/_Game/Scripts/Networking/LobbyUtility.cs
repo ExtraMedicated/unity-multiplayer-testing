@@ -22,6 +22,7 @@ public class LobbyUtility : MonoBehaviour {
 			return;
 		}
 		instance = this;
+		DontDestroyOnLoad(gameObject);
 	}
 
 	void OnEnable(){
@@ -67,6 +68,7 @@ public class LobbyUtility : MonoBehaviour {
 	}
 
 	public static void LeaveLobby(string lobbyId, EntityKey member, Action<string> onErrorCallback){
+		ExtDebug.LogJson($"LeaveLobby {lobbyId}", member);
 		PlayFabMultiplayerAPI.LeaveLobby(
 			new LeaveLobbyRequest {
 				LobbyId = lobbyId,
@@ -129,5 +131,27 @@ public class LobbyUtility : MonoBehaviour {
 		int reason)
 	{
 		OnLobbyFindLobbiesCompleted.Invoke(LobbyError.SUCCEEDED(reason) ? searchResults : null);
+	}
+
+
+	public static void UpdateLobby(PlayFab.MultiplayerModels.Lobby lobby, MembershipLock membershipLock){
+		PlayFabMultiplayerAPI.UpdateLobby(
+			new UpdateLobbyRequest {
+				LobbyId = lobby.LobbyId,
+				MembershipLock = membershipLock,
+			},
+			OnLobbyUpdated,
+			e => Debug.LogError(e.ErrorMessage)
+		);
+
+		// lobby. (
+		// 	PlayerEntity.LocalPlayer.PFEntityKey,
+		// 	updateData
+		// );
+	}
+
+	private static void OnLobbyUpdated(LobbyEmptyResult result)
+	{
+		Debug.Log("OnLobbyUpdated");
 	}
 }

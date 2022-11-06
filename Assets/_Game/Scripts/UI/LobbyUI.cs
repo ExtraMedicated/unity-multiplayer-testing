@@ -21,10 +21,17 @@ public class LobbyUI : MonoBehaviour
 	[SerializeField] NetworkManager networkManager;
 	[SerializeField] TransportWrapper transportWrapper;
 
+	NewNetworkAuthenticator networkAuthenticator;
+
 	bool fetchingMatches;
 
 	void OnEnable(){
 		statusMessage.text = string.Empty;
+		// Make sure authenticator is set up for multiplayer.
+		if (networkManager.authenticator == null) {
+			networkManager.authenticator = GameObject.FindObjectOfType<NewNetworkAuthenticator>();
+		}
+		networkAuthenticator = networkManager.authenticator as NewNetworkAuthenticator;
 		AddEventHandlers();
 		FindLobbies();
 	}
@@ -35,17 +42,63 @@ public class LobbyUI : MonoBehaviour
 
 	void AddEventHandlers(){
 		LobbyUtility.OnLobbyCreateAndJoinCompleted += OnLobbyCreateAndJoinCompleted;
-		LobbyUtility.OnLobbyDisconnected += OnLobbyDisconnected;
 		LobbyUtility.OnLobbyFindLobbiesCompleted += OnLobbyFindLobbiesCompleted;
 		LobbyUtility.OnLobbyJoinCompleted += OnLobbyJoinCompleted;
+
+		if (networkAuthenticator != null){
+			networkAuthenticator.AuthErrorEvent += OnLoginError;
+			networkAuthenticator.ClientAuthenticateEvent += AuthenticateClient;
+			networkAuthenticator.AuthResponseEvent += OnAuthResponse;
+			networkAuthenticator.OnClientAuthenticated.AddListener(AuthSuccess);
+		}
 
 	}
 
 	void RemoveEventHandlers(){
 		LobbyUtility.OnLobbyCreateAndJoinCompleted -= OnLobbyCreateAndJoinCompleted;
-		LobbyUtility.OnLobbyDisconnected -= OnLobbyDisconnected;
 		LobbyUtility.OnLobbyFindLobbiesCompleted -= OnLobbyFindLobbiesCompleted;
 		LobbyUtility.OnLobbyJoinCompleted -= OnLobbyJoinCompleted;
+
+		if (networkAuthenticator != null){
+			networkAuthenticator.AuthErrorEvent -= OnLoginError;
+			networkAuthenticator.ClientAuthenticateEvent -= AuthenticateClient;
+			networkAuthenticator.AuthResponseEvent -= OnAuthResponse;
+		}
+	}
+
+	void AuthenticateClient(){
+		// isAttemptingAuthentication = true;
+		// Debug.Log("AuthenticateClient " + authenticationMode.ToString());
+		var playerName = PlayerEntity.LocalPlayer.name;
+		// Tell the server that the user logged in.
+		NetworkClient.connection.Send(new AuthRequestMessage {
+			username = PlayerEntity.LocalPlayer.name,
+			entityId = PlayerEntity.LocalPlayer.entityKey.Id,
+			sessionTicket = PlayerEntity.LocalPlayer.sessionTicket,
+		});
+	}
+
+	private void OnLoginError(string error)
+	{
+		NetworkClient.Disconnect();
+		DisplayMessage(error, "red");
+	}
+
+	private void OnAuthResponse(AuthResponseMessage msg)
+	{
+		// TODO: Is it redundant to do this here?
+		NetworkClient.connection.authenticationData = new AuthenticationInfo {
+			EntityId = msg.entityId,
+			SessionTicket = msg.sessionTicket,
+		};
+	}
+
+	void AuthSuccess()
+	{
+		// Debug.Log("Logged in? " + (PlayFabClientAPI.IsClientLoggedIn() ? "Yes" : "No"));
+		// Debug.Log((NetworkClient.connection.authenticationData as AuthenticationInfo).EntityId);
+		Debug.Log("Auth Success!");
+		// Destroy(menuRootCanvas);
 	}
 
 	public void DisplayMessage(string text, string color = ""){
@@ -99,12 +152,6 @@ public class LobbyUI : MonoBehaviour
 			DisplayMessage("Error creating a lobby", "red");
 		}
 		// addLobbyForm.SetBusy(false);
-	}
-	private void OnLobbyDisconnected(Lobby lobby)
-	{
-		// Disconnected from lobby
-		Debug.Log("Disconnected from lobby!");
-		LeftLobby(lobby.Id);
 	}
 
 	#endregion
@@ -253,29 +300,6 @@ public class LobbyUI : MonoBehaviour
 		networkManager.StartClient();
 	}
 
-	#endregion
-
-	#region Disconnect
-	public void LeftLobby(string lobbyId){
-		Debug.Log($"{PlayerEntity.LocalPlayer?.name} LeftLobby {lobbyId}");
-		DisplayMessage($"{PlayerEntity.LocalPlayer?.name} LeftLobby {lobbyId}");
-		// NetworkClient.Send(new RemovePlayerFromMatchMessage {lobbyId = lobby.Id});
-		// MatchManager.instance.RemovePlayerFromMatch(ExtNetworkRoomPlayer.localPlayer, lobby.Id);
-
-		// Delay to allow time for changes to propagate.
-		// StartCoroutine(DelayCloseLobby());
-		// mainLobbiesUI.SetActive(true);
-
-		PlayerEntity.LocalPlayer.lobbyId = string.Empty;
-		NetworkClient.Disconnect();
-	}
-
-	// IEnumerator DelayCloseLobby(){
-	// 	yield return new WaitForSeconds(CLOSE_LOBBY_DELAY);
-	// 	joinedLobbyUI.gameObject.SetActive(false);
-	// 	joinedLobbyUI.lobby = null;
-	// 	FindLobbies();
-	// }
 	#endregion
 
 	#region Matchmaking

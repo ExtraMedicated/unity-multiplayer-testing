@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using PlayFab;
@@ -15,9 +16,11 @@ public class PlayerEntity {
 	public string lobbyId;
 	public EntityKey entityKey;
 	public PFEntityKey PFEntityKey; // I think this is only needed for the local player. Probably shouldn't even have it for others.
+	public string sessionTicket;
 
-	public PlayerEntity(PFEntityKey entity, PlayerInfo playerInfo){
+	public PlayerEntity(PFEntityKey entity, PlayerInfo playerInfo, string sessionTicket){
 		this.PFEntityKey = entity;
+		this.sessionTicket = sessionTicket;
 		entityKey = new EntityKey(entity.Id, entity.Type);
 		name = playerInfo.PlayerName;
 	}
@@ -49,7 +52,15 @@ public class PlayerEntity {
 	// }
 }
 
+[Serializable]
 public class PlayerInfo {
 	public string PlayerName;
 	public SetObject ToSetObject() => new SetObject { ObjectName = "PlayerData", DataObject = this };
+}
+
+[Serializable]
+public class AuthenticationInfo {
+	public string PlayerName;
+	public string EntityId;
+	public string SessionTicket;
 }

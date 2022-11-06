@@ -25,6 +25,7 @@ public class JoinedLobbyUI : MonoBehaviour {
 		leaveLobbyBtn.interactable = true;
 		PlayFabMultiplayer.OnLobbyMemberAdded += OnMemberAdded;
 		PlayFabMultiplayer.OnLobbyMemberRemoved += OnMemberRemoved;
+		LobbyUtility.OnLobbyDisconnected += OnLobbyDisconnected;
 		// StartCoroutine(DelayedOnEnable());
 		// MatchManager2.instance.OnUpdateMatch += UpdateMatch;
 	}
@@ -34,6 +35,7 @@ public class JoinedLobbyUI : MonoBehaviour {
 		// MatchManager2.instance.OnUpdateMatch -= UpdateMatch;
 		PlayFabMultiplayer.OnLobbyMemberAdded -= OnMemberAdded;
 		PlayFabMultiplayer.OnLobbyMemberRemoved -= OnMemberRemoved;
+		LobbyUtility.OnLobbyDisconnected -= OnLobbyDisconnected;
 		ClearUI();
 	}
 
@@ -132,13 +134,10 @@ public class JoinedLobbyUI : MonoBehaviour {
 	}
 
 	public void StartGame(){
-		// var updateData = new LobbyDataUpdate {
-		// 	MembershipLock = LobbyMembershipLock.Locked,
-		// };
-		// lobby.PostUpdate(
-		// 	ExtNetworkRoomPlayer.localPlayer.playerEntityKey,
-		// 	updateData
-		// );
+		var updateData = new LobbyDataUpdate {
+			MembershipLock = LobbyMembershipLock.Locked,
+		};
+		LobbyUtility.UpdateLobby(lobby._lobby, PlayFab.MultiplayerModels.MembershipLock.Locked);
 		// NetworkClient.Send(new BeginGameMessage {matchId = match.matchId});
 
 	}
@@ -152,9 +151,39 @@ public class JoinedLobbyUI : MonoBehaviour {
 		LobbyUtility.LeaveLobby(lobby.id, PlayerEntity.LocalPlayer.entityKey, OnError);
 	}
 
+	#region Disconnect
+	private void OnLobbyDisconnected(Lobby lobby)
+	{
+		// Disconnected from lobby
+		Debug.Log("Disconnected from lobby!");
+		LeftLobby(lobby.Id);
+	}
+
 	IEnumerator TempDisableLeaveBtn(){
 		leaveLobbyBtn.interactable = false;
 		yield return new WaitForSeconds(4f);
 		leaveLobbyBtn.interactable = true;
 	}
+
+	public void LeftLobby(string lobbyId){
+		Debug.Log($"{PlayerEntity.LocalPlayer?.name} LeftLobby {lobbyId}");
+		// DisplayMessage($"{PlayerEntity.LocalPlayer?.name} LeftLobby {lobbyId}");
+		// NetworkClient.Send(new RemovePlayerFromMatchMessage {lobbyId = lobby.Id});
+		// MatchManager.instance.RemovePlayerFromMatch(ExtNetworkRoomPlayer.localPlayer, lobby.Id);
+
+		// Delay to allow time for changes to propagate.
+		// StartCoroutine(DelayCloseLobby());
+		// mainLobbiesUI.SetActive(true);
+
+		PlayerEntity.LocalPlayer.lobbyId = string.Empty;
+		NetworkClient.Disconnect();
+	}
+
+	// IEnumerator DelayCloseLobby(){
+	// 	yield return new WaitForSeconds(CLOSE_LOBBY_DELAY);
+	// 	joinedLobbyUI.gameObject.SetActive(false);
+	// 	joinedLobbyUI.lobby = null;
+	// 	FindLobbies();
+	// }
+	#endregion
 }

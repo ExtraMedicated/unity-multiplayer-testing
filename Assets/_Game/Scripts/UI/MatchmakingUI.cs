@@ -39,6 +39,8 @@ public class MatchmakingUI : MonoBehaviour {
 			var deets = MatchmakingUtility.GetMatchDetails();
 			ExtDebug.LogJson("Details: ", deets);
 			LobbyArrangementString = deets.LobbyArrangementString;
+			// Why not just go right away?
+			MatchmakingUtility.GoToArrangedLobby(LobbyArrangementString);
 		}
 	}
 }

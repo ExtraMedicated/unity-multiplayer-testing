@@ -173,20 +173,22 @@ public class MultiplayerMenu : MonoBehaviour
 		};
 
 		if (PlayerEntity.LocalPlayer == null || PlayerEntity.LocalPlayer.name != playerNameInput.text){
-			SetPlayerData(dataList, entity, ViewLobbies);
-		// } else {
-		// 	GetPlayerData(entity, (result) => {
-		// 		var playerInfo = result.Objects["PlayerData"]?.DataObject as PlayerInfo;
-		// 		if (playerInfo != null){
-		// 			if (PlayerEntity.LocalPlayer == null){
-		// 				PlayerEntity.LocalPlayer = new PlayerEntity(entity, playerInfo);
-		// 			} else if (playerInfo.PlayerName != PlayerEntity.LocalPlayer.name){
-		// 				// Name changed. Update the player on PF.
-		// 				SetPlayerData(dataList, entity, ViewLobbies);
-		// 			}
-		// 		}
-		// 		Debug.Log(JsonConvert.SerializeObject(playerInfo));
-		// 	});
+			//Set PlayerEntity.LocalPlayer
+			SetPlayerData(response.SessionTicket, dataList, entity, ViewLobbies);
+		} else {
+			ViewLobbies();
+			// GetPlayerData(entity, (result) => {
+			// 	var playerInfo = result.Objects["PlayerData"]?.DataObject as PlayerInfo;
+			// 	if (playerInfo != null){
+			// 		if (PlayerEntity.LocalPlayer == null){
+			// 			PlayerEntity.LocalPlayer = new PlayerEntity(entity, playerInfo);
+			// 		} else if (playerInfo.PlayerName != PlayerEntity.LocalPlayer.name){
+			// 			// Name changed. Update the player on PF.
+			// 			SetPlayerData(dataList, entity, ViewLobbies);
+			// 		}
+			// 	}
+			// 	Debug.Log(JsonConvert.SerializeObject(playerInfo));
+			// });
 		}
 
 		// // Tell the server that the user logged in.
@@ -197,7 +199,7 @@ public class MultiplayerMenu : MonoBehaviour
 		// });
 	}
 
-	void SetPlayerData(List<SetObject> setObjects, PFEntityKey entity, Action callback){
+	void SetPlayerData(string sessionTicket, List<SetObject> setObjects, PFEntityKey entity, Action callback){
 		Debug.Log(JsonConvert.SerializeObject(setObjects));
 		PlayFabClientAPI.UpdateUserTitleDisplayName(new UpdateUserTitleDisplayNameRequest {
 			DisplayName = playerNameInput.text
@@ -209,7 +211,7 @@ public class MultiplayerMenu : MonoBehaviour
 			Debug.Log("setResult");
 			Debug.Log(JsonConvert.SerializeObject(setResult));
 			var pInfo = setObjects[0].DataObject as PlayerInfo;
-			PlayerEntity.LocalPlayer = new PlayerEntity(entity, pInfo);
+			PlayerEntity.LocalPlayer = new PlayerEntity(entity, pInfo, sessionTicket);
 
 			// GetPlayerData(entity, (result) => {
 			// 	var objs = result.Objects;

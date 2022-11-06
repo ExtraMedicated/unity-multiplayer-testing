@@ -112,7 +112,7 @@ public class AgentListener : MonoBehaviour {
 		{
 			conn.Connection.Send<ShutdownMessage>(new ShutdownMessage());
 		}
-		NetworkServer.Shutdown();
+		networkManager.StopServer();
 		StartCoroutine(Shutdown());
 	}
 

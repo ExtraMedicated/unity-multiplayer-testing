@@ -110,14 +110,18 @@ public class JoinedLobbyUI : MonoBehaviour {
 
 	private void OnMemberRemoved(Lobby lobby, PFEntityKey member, LobbyMemberRemovedReason reason)
 	{
-		Debug.Log($"LobbyMemberRemoved {member.Id} | {reason}");
-		// Apparently I need to reload the lobby to update the list of members.
-		LoadLobby(lobby.Id);
-		// RefreshPlayerList();
+		if (member.Id == PlayerEntity.LocalPlayer.entityKey.Id){
+			LeftLobby(lobby.Id);
+		} else {
+			Debug.Log($"LobbyMemberRemoved {member.Id} | {reason}");
+			// Apparently I need to reload the lobby to update the list of members.
+			LoadLobby(lobby.Id);
+			// RefreshPlayerList();
+		}
 	}
 
 	void RefreshUI(){
-		lobbyText.text = $"{(lobby.isPublic ? "":"Private ")}Lobby {lobby.LobbyName}";
+		lobbyText.text = $"{(lobby.isPublic ? "":"Private ")}Lobby {lobby.LobbyName} ({lobby._lobby.LobbyId})";
 		// levelNameText.text = $"Level: {lobby.levelName}";
 		startGameBtn.gameObject.SetActive(PlayerEntity.LocalPlayer.entityKey.Id == lobby.lobbyOwnerId);
 		RefreshPlayerList();
@@ -137,9 +141,10 @@ public class JoinedLobbyUI : MonoBehaviour {
 		foreach (var member in lobby._lobby.Members){
 			ExtDebug.LogJson("Player Entity: ", member);
 			var item = Instantiate(playerListItemPrefab, playerListPanel).GetComponent<PlayerListItem>();
+			item.lobbyUI = this;
 			var playerEntity = new PlayerEntity(member);
 			// var player = networkManager.playerMap[playerEntity.entityKey.Id];
-			item.SetPlayer(playerEntity, lobby.lobbyOwnerId);
+			item.SetPlayer(playerEntity);
 			// var getRequest = new GetObjectsRequest {Entity = new PlayFab.DataModels.EntityKey { Id = member.Id, Type = member.Type }};
 			// //PlayFab.PlayFabClientAPI.GetPlayerProfile();
 			// PlayFabDataAPI.GetObjects(getRequest,

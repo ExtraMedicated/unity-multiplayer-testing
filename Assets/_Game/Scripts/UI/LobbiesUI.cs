@@ -11,7 +11,7 @@ using PlayFab;
 public class LobbiesUI : MonoBehaviour
 {
 	const float MATCHES_UPDATE_INTERVAL = 6f;
-	const float CLOSE_LOBBY_DELAY = 3f;
+	const float INITIAL_SEARCH_DELAY = 1.5f;
 	[SerializeField] Transform lobbyListPanel;
 	[SerializeField] GameObject lobbyListItemPrefab;
 	// [SerializeField] JoinedLobbyUI joinedLobbyUI;
@@ -34,7 +34,7 @@ public class LobbiesUI : MonoBehaviour
 		}
 		networkAuthenticator = networkManager.authenticator as NewNetworkAuthenticator;
 		AddEventHandlers();
-		FindLobbies();
+		Invoke(nameof(FindLobbies), INITIAL_SEARCH_DELAY);
 	}
 	void OnDisable(){
 		fetchingMatches = false;

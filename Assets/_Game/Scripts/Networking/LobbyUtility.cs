@@ -45,7 +45,7 @@ public class LobbyUtility : MonoBehaviour {
 
 	private static void OnError(PlayFabError error, Action<string> callback)
 	{
-		Debug.LogError(error.ErrorMessage);
+		Debug.LogError(error.GenerateErrorReport());
 		callback.Invoke(error.ErrorMessage);
 	}
 
@@ -81,6 +81,19 @@ public class LobbyUtility : MonoBehaviour {
 			new LeaveLobbyRequest {
 				LobbyId = lobbyId,
 				MemberEntity = member
+			},
+			OnLeaveLobby,
+			e => OnError(e, onErrorCallback)
+		);
+	}
+
+	public static void RemoveMemberFromLobby(string lobbyId, EntityKey member, Action<string> onErrorCallback){
+		ExtDebug.LogJson($"RemoveMemberFromLobby {lobbyId}", member);
+		PlayFabMultiplayerAPI.RemoveMember(
+			new RemoveMemberFromLobbyRequest {
+				LobbyId = lobbyId,
+				MemberEntity = member,
+				PreventRejoin = true, // TODO: What is the proper default for this?
 			},
 			OnLeaveLobby,
 			e => OnError(e, onErrorCallback)

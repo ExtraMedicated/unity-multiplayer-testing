@@ -108,21 +108,21 @@ public class LobbyUtility : MonoBehaviour {
 
 	private void PlayFabMultiplayer_OnLobbyCreateAndJoinCompleted(PlayFab.Multiplayer.Lobby lobby, int result)
 	{
-		OnLobbyCreateAndJoinCompleted.Invoke(LobbyError.SUCCEEDED(result) ? lobby : null);
+		OnLobbyCreateAndJoinCompleted?.Invoke(LobbyError.SUCCEEDED(result) ? lobby : null);
 	}
 
 	private void PlayFabMultiplayer_OnLobbyJoinCompleted(PlayFab.Multiplayer.Lobby lobby, PFEntityKey newMember, int result)
 	{
-		OnLobbyJoinCompleted.Invoke(LobbyError.SUCCEEDED(result) ? lobby : null);
+		OnLobbyJoinCompleted?.Invoke(LobbyError.SUCCEEDED(result) ? lobby : null);
 	}
 	private void PlayFabMultiplayer_OnArrangedLobbyJoinCompleted(PlayFab.Multiplayer.Lobby lobby, PFEntityKey newMember, int result)
 	{
-		OnLobbyJoinCompleted.Invoke(LobbyError.SUCCEEDED(result) ? lobby : null);
+		OnLobbyJoinCompleted?.Invoke(LobbyError.SUCCEEDED(result) ? lobby : null);
 	}
 
 	private void PlayFabMultiplayer_OnLobbyDisconnected(PlayFab.Multiplayer.Lobby lobby)
 	{
-		OnLobbyDisconnected.Invoke(lobby);
+		OnLobbyDisconnected?.Invoke(lobby);
 	}
 
 	private void PlayFabMultiplayer_OnLobbyFindLobbiesCompleted(
@@ -130,7 +130,7 @@ public class LobbyUtility : MonoBehaviour {
 		PFEntityKey newMember,
 		int reason)
 	{
-		OnLobbyFindLobbiesCompleted.Invoke(LobbyError.SUCCEEDED(reason) ? searchResults : null);
+		OnLobbyFindLobbiesCompleted?.Invoke(LobbyError.SUCCEEDED(reason) ? searchResults : null);
 	}
 
 

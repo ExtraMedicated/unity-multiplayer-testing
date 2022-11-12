@@ -44,7 +44,7 @@ public class LobbyListItem : MonoBehaviour {
 
 	public void OnClickLobby(){
 		// LobbyUtility.instance.JoinLobby(lobby.connectionString);
-		var ui = FindObjectOfType<LobbyUI>();
+		var ui = FindObjectOfType<LobbiesUI>();
 		ui.JoinLobby(lobby.connectionString);
 	}
 

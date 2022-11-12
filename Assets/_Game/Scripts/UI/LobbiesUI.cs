@@ -8,7 +8,7 @@ using TMPro;
 using Mirror;
 using PlayFab;
 
-public class LobbyUI : MonoBehaviour
+public class LobbiesUI : MonoBehaviour
 {
 	const float MATCHES_UPDATE_INTERVAL = 6f;
 	const float CLOSE_LOBBY_DELAY = 3f;
@@ -17,6 +17,7 @@ public class LobbyUI : MonoBehaviour
 	// [SerializeField] JoinedLobbyUI joinedLobbyUI;
 	[SerializeField] UIText statusMessage;
 	[SerializeField] MatchmakingUI matchmakingUI;
+	[SerializeField] MultiplayerMenu multiplayerMenu;
 
 	[SerializeField] NetworkManager networkManager;
 	[SerializeField] TransportWrapper transportWrapper;
@@ -109,6 +110,15 @@ public class LobbyUI : MonoBehaviour
 		foreach (var button in lobbyListPanel.GetComponentsInChildren<Selectable>()){
 			button.interactable = val;
 		}
+	}
+
+	public void OnClickedCancel(){
+		DisplayMessage(string.Empty);
+		// "log out" and return to menu.
+		PlayFabClientAPI.ForgetAllCredentials();
+		PlayerEntity.LocalPlayer = null;
+		multiplayerMenu.gameObject.SetActive(true);
+		gameObject.SetActive(false);
 	}
 
 

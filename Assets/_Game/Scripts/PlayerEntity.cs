@@ -18,6 +18,8 @@ public class PlayerEntity {
 	public PFEntityKey PFEntityKey; // I think this is only needed for the local player. Probably shouldn't even have it for others.
 	public string sessionTicket;
 
+	public bool HasSession => !string.IsNullOrEmpty(sessionTicket);
+
 	public PlayerEntity(PFEntityKey entity, PlayerInfo playerInfo, string sessionTicket){
 		this.PFEntityKey = entity;
 		this.sessionTicket = sessionTicket;

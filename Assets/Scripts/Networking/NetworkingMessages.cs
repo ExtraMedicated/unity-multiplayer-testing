@@ -31,6 +31,11 @@ public struct AuthRequestMessage : NetworkMessage {
 
 }
 
+public struct ChangeReadyStateMessage : NetworkMessage {
+	public string entityId;
+	public bool ready;
+}
+
 public struct AuthResponseMessage : NetworkMessage {
 	public string username;
 	public string sessionTicket;

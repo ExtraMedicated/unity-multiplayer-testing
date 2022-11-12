@@ -16,12 +16,13 @@ API Reference: https://mirror-networking.com/docs/api/Mirror.NetworkManager.html
 public class ExtNetworkRoomManager : NetworkRoomManager {
 
 
-	public List<UnityNetworkConnection> Connections
-	{
-		get { return _connections; }
-		private set { _connections = value; }
-	}
-	private List<UnityNetworkConnection> _connections = new List<UnityNetworkConnection>();
+	// public List<UnityNetworkConnection> Connections
+	// {
+	// 	get { return _connections; }
+	// 	private set { _connections = value; }
+	// }
+	// private List<UnityNetworkConnection> _connections = new List<UnityNetworkConnection>();
+
 
 	public UnityEvent<string> OnPlayerAdded;
 	public UnityEvent<string> OnPlayerRemoved;
@@ -103,6 +104,7 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 		Debug.Log("EntityId: " + authInfo?.EntityId);
 		base.OnServerAddPlayer(conn);
 		var roomPlayer = conn.identity.GetComponent<ExtNetworkRoomPlayer>();
+		roomPlayer.entityId = authInfo.EntityId;
 		if (roomPlayer != null){
 			// roomPlayer.playerName = authInfo.PlayerName;
 			OnPlayerAdded?.Invoke(roomPlayer.entityId);
@@ -114,8 +116,12 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 		Debug.Log("OnRoomServerCreateRoomPlayer");
 		var player = Instantiate(roomPlayerPrefab.gameObject, Vector3.zero, Quaternion.identity).GetComponent<ExtNetworkRoomPlayer>();
 		player.entityId = (conn.authenticationData as AuthenticationInfo)?.EntityId;
-		Debug.Log("EntityId: " + player.entityId);
+		Debug.Log(player.entityId, player);
 		return player.gameObject;
+	}
+
+	void ServerRemovePlayer(string entityId){
+		OnPlayerRemoved?.Invoke(entityId);
 	}
 
 	public override void OnRoomServerConnect(NetworkConnectionToClient conn)
@@ -133,10 +139,10 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 			Debug.Log("identity is on game player. room player is " + p.networkRoomPlayer);
 			// First, switch the identity back to the room player so that it gets cleaned up.
 			NetworkServer.ReplacePlayerForConnection(conn, p.networkRoomPlayer.gameObject);
-			OnPlayerRemoved?.Invoke(p.networkRoomPlayer.entityId);
+			ServerRemovePlayer(p.networkRoomPlayer.entityId);
 		} else {
 			Debug.Log("identity is on room player");
-			OnPlayerRemoved?.Invoke(conn.identity.GetComponent<ExtNetworkRoomPlayer>().entityId);
+			ServerRemovePlayer(conn.identity.GetComponent<ExtNetworkRoomPlayer>().entityId);
 		}
 	}
 

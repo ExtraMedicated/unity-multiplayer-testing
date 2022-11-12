@@ -89,7 +89,11 @@ public class MultiplayerMenu : MonoBehaviour
 	}
 
 	void DisplayMessage(string text, string color = ""){
-		statusText.text = !string.IsNullOrEmpty(color) ? $"<color={color}>{text}</color>" : text;
+		if (!string.IsNullOrEmpty(color)){
+			statusText.SetText(text, color);
+		} else {
+			statusText.text = text;
+		}
 	}
 
 	void AttemptPlayfabLogin(){

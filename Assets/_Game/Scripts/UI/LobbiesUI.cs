@@ -47,7 +47,7 @@ public class LobbiesUI : MonoBehaviour
 		LobbyUtility.OnLobbyJoinCompleted += OnLobbyJoinCompleted;
 
 		if (networkAuthenticator != null){
-			networkAuthenticator.AuthErrorEvent += OnLoginError;
+			networkAuthenticator.AuthErrorEvent += OnAuthError;
 			networkAuthenticator.ClientAuthenticateEvent += AuthenticateClient;
 			networkAuthenticator.AuthResponseEvent += OnAuthResponse;
 			networkAuthenticator.OnClientAuthenticated.AddListener(AuthSuccess);
@@ -61,7 +61,7 @@ public class LobbiesUI : MonoBehaviour
 		LobbyUtility.OnLobbyJoinCompleted -= OnLobbyJoinCompleted;
 
 		if (networkAuthenticator != null){
-			networkAuthenticator.AuthErrorEvent -= OnLoginError;
+			networkAuthenticator.AuthErrorEvent -= OnAuthError;
 			networkAuthenticator.ClientAuthenticateEvent -= AuthenticateClient;
 			networkAuthenticator.AuthResponseEvent -= OnAuthResponse;
 		}
@@ -79,7 +79,7 @@ public class LobbiesUI : MonoBehaviour
 		});
 	}
 
-	private void OnLoginError(string error)
+	private void OnAuthError(string error)
 	{
 		NetworkClient.Disconnect();
 		DisplayMessage(error, "red");
@@ -103,7 +103,7 @@ public class LobbiesUI : MonoBehaviour
 	}
 
 	public void DisplayMessage(string text, string color = ""){
-		statusMessage.text = !string.IsNullOrEmpty(color) ? $"<color={color}>{text}</color>" : text;
+		statusMessage.SetText(text, color);
 	}
 
 	void SetLobbyListEnabled(bool val){
@@ -169,9 +169,8 @@ public class LobbiesUI : MonoBehaviour
 	#region Find Lobbies
 	public void FindLobbies(){
 		if (!fetchingMatches){
-			fetchingMatches = true;
+			fetchingMatches = LobbyUtility.FindLobbies();
 			// findLobbiesButton.interactable = false;
-			LobbyUtility.FindLobbies();
 		}
 	}
 

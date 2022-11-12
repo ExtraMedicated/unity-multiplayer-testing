@@ -8,6 +8,7 @@ using UnityEngine;
 
 public class LobbyUtility : MonoBehaviour {
 
+	const float MIN_POLLING_FREQUENCY = 6f;
 	static LobbyUtility instance;
 
 	public static event Action<PlayFab.Multiplayer.Lobby> OnLobbyCreateAndJoinCompleted;
@@ -15,6 +16,7 @@ public class LobbyUtility : MonoBehaviour {
 	public static event Action<IList<LobbySearchResult>> OnLobbyFindLobbiesCompleted;
 	public static event Action<PlayFab.Multiplayer.Lobby> OnLobbyJoinCompleted;
 
+	static DateTime timeOfLastSearch = DateTime.MinValue;
 
 	void Awake(){
 		if (instance != null){
@@ -47,9 +49,15 @@ public class LobbyUtility : MonoBehaviour {
 		callback.Invoke(error.ErrorMessage);
 	}
 
-	public static void FindLobbies(){
-		LobbySearchConfiguration lobbySearchConfig = new LobbySearchConfiguration();
-		PlayFabMultiplayer.FindLobbies(PlayerEntity.LocalPlayer.PFEntityKey, lobbySearchConfig);
+	public static bool FindLobbies(){
+		if ((DateTime.Now - timeOfLastSearch).TotalSeconds > MIN_POLLING_FREQUENCY){
+			Debug.Log("------------- FindLobbies --------------");
+			LobbySearchConfiguration lobbySearchConfig = new LobbySearchConfiguration();
+			PlayFabMultiplayer.FindLobbies(PlayerEntity.LocalPlayer.PFEntityKey, lobbySearchConfig);
+			timeOfLastSearch = DateTime.Now;
+			return true;
+		}
+		return false;
 	}
 
 	public static void GetLobby(string LobbyId, Action<PlayFab.MultiplayerModels.Lobby> onSuccessCallback, Action<string> onErrorCallback){

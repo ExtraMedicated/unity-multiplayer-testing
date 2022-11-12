@@ -9,6 +9,7 @@ using PlayFab;
 using PlayFab.DataModels;
 using UnityEngine.SceneManagement;
 using Mirror;
+using System.Linq;
 
 public class JoinedLobbyUI : MonoBehaviour {
 	public LobbyWrapper lobby;
@@ -21,13 +22,21 @@ public class JoinedLobbyUI : MonoBehaviour {
 	public GameObject playerListItemPrefab;
 	// public LobbyUI mainLobbiesUI;
 
+	ExtNetworkRoomManager networkManager;
+
 	void OnEnable(){
 		leaveLobbyBtn.interactable = true;
 		PlayFabMultiplayer.OnLobbyMemberAdded += OnMemberAdded;
 		PlayFabMultiplayer.OnLobbyMemberRemoved += OnMemberRemoved;
 		LobbyUtility.OnLobbyDisconnected += OnLobbyDisconnected;
+		if (networkManager == null){
+			networkManager = FindObjectOfType<ExtNetworkRoomManager>();
+		}
 		// StartCoroutine(DelayedOnEnable());
 		// MatchManager2.instance.OnUpdateMatch += UpdateMatch;
+		NetworkServer.RegisterHandler<ChangeReadyStateMessage>(BroadcastPlayerReadyStateChange);
+		NetworkClient.RegisterHandler<ChangeReadyStateMessage>(OnPlayerReadyStateChanged);
+
 	}
 
 	void OnDisable(){
@@ -36,7 +45,23 @@ public class JoinedLobbyUI : MonoBehaviour {
 		PlayFabMultiplayer.OnLobbyMemberAdded -= OnMemberAdded;
 		PlayFabMultiplayer.OnLobbyMemberRemoved -= OnMemberRemoved;
 		LobbyUtility.OnLobbyDisconnected -= OnLobbyDisconnected;
+		NetworkServer.UnregisterHandler<ChangeReadyStateMessage>();
 		ClearUI();
+	}
+
+	private void BroadcastPlayerReadyStateChange(NetworkConnectionToClient conn, ChangeReadyStateMessage msg)
+	{
+		NetworkServer.SendToAll(msg);
+	}
+
+	private void OnPlayerReadyStateChanged(ChangeReadyStateMessage msg)
+	{
+		for (int i=0; i<playerListPanel.childCount; i++){
+			var item = playerListPanel.GetChild(i).gameObject.GetComponent<PlayerListItem>();
+			if (item != null && item.Player.entityKey.Id == msg.entityId){
+				item.SetReady(msg.ready);
+			}
+		}
 	}
 
 	public void LoadLobby(string lobbyId){
@@ -81,8 +106,6 @@ public class JoinedLobbyUI : MonoBehaviour {
 
 		// Apparently I need to reload the lobby to update the list of members.
 		LoadLobby(lobby.Id);
-
-		// RefreshPlayerList();
 	}
 
 	private void OnMemberRemoved(Lobby lobby, PFEntityKey member, LobbyMemberRemovedReason reason)
@@ -114,7 +137,9 @@ public class JoinedLobbyUI : MonoBehaviour {
 		foreach (var member in lobby._lobby.Members){
 			ExtDebug.LogJson("Player Entity: ", member);
 			var item = Instantiate(playerListItemPrefab, playerListPanel).GetComponent<PlayerListItem>();
-			item.SetPlayer(new PlayerEntity(member), lobby.lobbyOwnerId);
+			var playerEntity = new PlayerEntity(member);
+			// var player = networkManager.playerMap[playerEntity.entityKey.Id];
+			item.SetPlayer(playerEntity, lobby.lobbyOwnerId);
 			// var getRequest = new GetObjectsRequest {Entity = new PlayFab.DataModels.EntityKey { Id = member.Id, Type = member.Type }};
 			// //PlayFab.PlayFabClientAPI.GetPlayerProfile();
 			// PlayFabDataAPI.GetObjects(getRequest,

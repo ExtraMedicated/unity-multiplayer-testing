@@ -17,7 +17,6 @@ using System;
 /// </summary>
 public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 {
-	public string entityId;
 	ExtNetworkRoomManager _netMgr;
 	ExtNetworkRoomManager networkManager {
 		get {
@@ -30,6 +29,7 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 
 
 	public static ExtNetworkRoomPlayer localPlayer;
+	[SyncVar] public string entityId;
 	[SyncVar] public string playerName;
 	[SyncVar] public string matchId;
 	[SyncVar] public Player gamePlayer;

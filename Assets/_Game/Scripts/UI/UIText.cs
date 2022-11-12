@@ -20,17 +20,29 @@ public class UIText : MonoBehaviour
 		}
 	}
 
-	public bool setDefaultByObjectName = true;
+	public bool setDefaultByObjectName;
 
 	public string text {
 		get => textComponent.text;
-		set => UpdateText(value);
+		set => UpdateText(LocalizedText(value));
+	}
+
+	public void SetText(string text, Color color){
+		SetText(text, ColorUtility.ToHtmlStringRGB(color));
+	}
+	public void SetText(string text, string color){
+		if (!string.IsNullOrWhiteSpace(color)){
+			UpdateText($"<color=#{color}>{LocalizedText(text)}</color>");
+		} else {
+			UpdateText(LocalizedText(text));
+		}
 	}
 
 	void Start()
 	{
-		Debug.Log("TODO: Document UIText component!");
+		// Debug.Log("TODO: Document UIText component!");
 		Reset();
+		UpdateText(LocalizedText(textComponent.text));
 	}
 
 	void OnValidate(){
@@ -42,8 +54,12 @@ public class UIText : MonoBehaviour
 		}
 	}
 
-	void UpdateText(string text){
+	string LocalizedText(string text){
 		// TODO: Localization can happen here.
+		return text;
+	}
+
+	void UpdateText(string text){
 		textComponent.text = text;
 	}
 }

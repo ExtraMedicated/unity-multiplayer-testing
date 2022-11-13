@@ -60,7 +60,7 @@ public class NewNetworkAuthenticator : NetworkAuthenticator
 				EntityId = msg.entityId,
 				SessionTicket = msg.sessionTicket,
 			};
-			conn.Send(new AuthResponseMessage {
+			NetworkingMessages.SendThroughConnection(conn, new AuthResponseMessage {
 				username = msg.username,
 				sessionTicket = msg.sessionTicket,
 				entityId = msg.entityId,
@@ -77,7 +77,7 @@ public class NewNetworkAuthenticator : NetworkAuthenticator
 	private void OnLoginError(NetworkConnectionToClient conn, string error)
 	{
 		Debug.Log("OnLoginError: " + error);
-		conn.Send(new AuthErrorMessage {error = error});
+		NetworkingMessages.SendThroughConnection(conn, new AuthErrorMessage {error = error});
 		// conn.Disconnect(); Disconnecting here prevents receiving the message.
 	}
 

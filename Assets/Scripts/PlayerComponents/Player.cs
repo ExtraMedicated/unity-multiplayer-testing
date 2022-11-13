@@ -11,7 +11,7 @@ public class Player : NetworkBehaviour
 	Rigidbody _rigidbody;
 	[SerializeField] CinemachineVirtualCamera virtualCamera;
 	[SyncVar] internal ExtNetworkRoomPlayer networkRoomPlayer;
-	internal NetworkManager networkManager;
+	internal ExtNetworkRoomManager networkManager;
 	CameraMovement cameraMovement;
 
 	[SyncVar] public float fuel = 100;
@@ -43,7 +43,7 @@ public class Player : NetworkBehaviour
 		_rigidbody = GetComponent<Rigidbody>();
 		centerX = Screen.width/2;
 		centerY = Screen.height/2;
-		networkManager = FindObjectOfType<NetworkManager>();
+		networkManager = FindObjectOfType<ExtNetworkRoomManager>();
 
 		// if (isServer){
 		// 	playerId = GetInstanceID();
@@ -112,6 +112,9 @@ public class Player : NetworkBehaviour
 			return;
 
 		if (hasAuthority && Input.GetKeyDown(KeyCode.Escape)){
+			if (PlayerEntity.LocalPlayer.lobbyInfo.lobbyOwnerId == PlayerEntity.LocalPlayer.entityKey.Id){
+				LetsAllGoToTheLobby();
+			}
 			// ExtNetworkRoomPlayer.localPlayer?.QuitGame();
 			// if (networkRoomPlayer != null){
 			// 	networkRoomPlayer.QuitGame();
@@ -123,12 +126,17 @@ public class Player : NetworkBehaviour
 			// 	Debug.Log("Send StopGameMessage");
 			// 	NetworkClient.Send(new StopGameMessage(ExtNetworkRoomPlayer.localPlayer.matchId, ExtNetworkRoomPlayer.localPlayer.netId));
 			// } else if (NetworkClient.isHostClient) {
-				networkManager.StopHost();
+			//	networkManager.StopHost();
 			// }
 			return;
 		}
 
 		HandleInput();
+	}
+
+	[Command]
+	void LetsAllGoToTheLobby(){
+		networkManager.ServerChangeScene(networkManager.RoomScene);
 	}
 
 	// public void TriggerStopGameFromServer(){

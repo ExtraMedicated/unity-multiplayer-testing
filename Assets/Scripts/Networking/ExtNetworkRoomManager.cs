@@ -32,6 +32,7 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 	public Action _OnClientDisconnect;
 	public Action<Exception> _OnClientError;
 	public Action _OnStopClient;
+	public Action<bool> _OnAllPlayersReadyStateChanged;
 	public enum GameMode {
 		SinglePlayer,
 		Multiplayer,
@@ -48,6 +49,7 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 		base.OnStartServer();
 		// NetworkServer.RegisterHandler<CreateRoomPlayerMessage>(OnCreateRoomPlayer);
 		// NetworkServer.RegisterHandler<CreateGamePlayerMessage>(OnCreateGamePlayer);
+		NetworkServer.RegisterHandler<BeginGameMessage>(OnStartGameMessage);
 	}
 
 	/// <summary>
@@ -80,21 +82,36 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 
 		Debug.Log($"------ OnRoomServerSceneLoadedForPlayer {SceneManager.GetActiveScene().name} {roomPlayer.name} {gamePlayer.name}");
 
-		SceneManager.MoveGameObjectToScene(gamePlayer, SceneManager.GetActiveScene());
-		// // var sessionInfo = GameObject.FindObjectOfType<SessionInfo>();
+		// SceneManager.MoveGameObjectToScene(gamePlayer, SceneManager.GetActiveScene());
 
-		// Debug.Log("sessionInfo.EntityId = " + sessionInfo.EntityId);
-		var player = conn.identity.GetComponent<ExtNetworkRoomPlayer>();
-		player.entityId = PlayerEntity.LocalPlayer.entityKey.Id;
-		// player.PlayFabId = sessionInfo.EntityId;
-		// player.PlayerName = sessionInfo.PlayerName;
-		OnPlayerAdded?.Invoke(player.entityId);
+
+		var rPlayer = roomPlayer.GetComponent<ExtNetworkRoomPlayer>();
+		var gPlayer = gamePlayer.GetComponent<Player>();
+
+		gPlayer.name = rPlayer.playerName;
+		rPlayer.gamePlayer = gPlayer;
+		gPlayer.networkRoomPlayer = rPlayer;
+
+		OnPlayerAdded?.Invoke(rPlayer.entityId);
 		return true;
 	}
 
-	public override void OnRoomStopServer()
+	private void OnStartGameMessage(NetworkConnectionToClient arg1, BeginGameMessage arg2)
 	{
-		base.OnRoomStopServer();
+		ServerChangeScene(GameplayScene);
+	}
+
+	// public override void OnRoomStopServer()
+	// {
+	// 	base.OnRoomStopServer();
+	// }
+
+	public override void OnRoomServerPlayersReady(){
+		// base.OnRoomServerPlayersReady();
+		NetworkingMessages.SendChangeAllPlayersReadyStateMessage(true);
+	}
+	public override void OnRoomServerPlayersNotReady(){
+		NetworkingMessages.SendChangeAllPlayersReadyStateMessage(false);
 	}
 
 	public override void OnServerAddPlayer(NetworkConnectionToClient conn)
@@ -170,42 +187,6 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 	public override void OnRoomStopClient()
 	{
 		_OnStopClient?.Invoke();
-	}
-
-	/*
-		This code below is to demonstrate how to do a Start button that only appears for the Host player
-		showStartButton is a local bool that's needed because OnRoomServerPlayersReady is only fired when
-		all players are ready, but if a player cancels their ready state there's no callback to set it back to false
-		Therefore, allPlayersReady is used in combination with showStartButton to show/hide the Start button correctly.
-		Setting showStartButton false when the button is pressed hides it in the game scene since NetworkRoomManager
-		is set as DontDestroyOnLoad = true.
-	*/
-
-	bool showStartButton;
-
-	public override void OnRoomServerPlayersReady()
-	{
-		// calling the base method calls ServerChangeScene as soon as all players are in Ready state.
-	#if UNITY_SERVER
-		base.OnRoomServerPlayersReady();
-	#else
-		showStartButton = true;
-	#endif
-	}
-
-	public override void OnGUI()
-	{
-		if (showRoomGUI && gameMode == GameMode.Multiplayer){
-			base.OnGUI();
-
-			if (allPlayersReady && showStartButton && GUI.Button(new Rect(150, 300, 120, 20), "START GAME"))
-			{
-				// set to false to hide it in the game scene
-				showStartButton = false;
-
-				ServerChangeScene(GameplayScene);
-			}
-		}
 	}
 
 	[Serializable]

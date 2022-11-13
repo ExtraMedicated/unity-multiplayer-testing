@@ -11,7 +11,7 @@ using PlayFab;
 public class LobbiesUI : MonoBehaviour
 {
 	const float MATCHES_UPDATE_INTERVAL = 6f;
-	const float INITIAL_SEARCH_DELAY = 1.5f;
+	const float INITIAL_SEARCH_DELAY = 3f;
 	[SerializeField] Transform lobbyListPanel;
 	[SerializeField] GameObject lobbyListItemPrefab;
 	// [SerializeField] JoinedLobbyUI joinedLobbyUI;
@@ -72,11 +72,7 @@ public class LobbiesUI : MonoBehaviour
 		// Debug.Log("AuthenticateClient " + authenticationMode.ToString());
 		var playerName = PlayerEntity.LocalPlayer.name;
 		// Tell the server that the user logged in.
-		NetworkClient.connection.Send(new AuthRequestMessage {
-			username = PlayerEntity.LocalPlayer.name,
-			entityId = PlayerEntity.LocalPlayer.entityKey.Id,
-			sessionTicket = PlayerEntity.LocalPlayer.sessionTicket,
-		});
+		NetworkingMessages.SendAuthRequestMessage();
 	}
 
 	private void OnAuthError(string error)
@@ -268,7 +264,12 @@ public class LobbiesUI : MonoBehaviour
 		}
 		DisplayMessage("Connecting...");
 		Debug.Log($"{PlayerEntity.LocalPlayer?.name} JoinedLobby {lobby.Id}");
-		PlayerEntity.LocalPlayer.lobbyId = lobby.Id;
+		if (lobby.TryGetOwner(out PFEntityKey owner)){
+			PlayerEntity.LocalPlayer.lobbyInfo = new BasicLobbyInfo {
+				lobbyId = lobby.Id,
+				lobbyOwnerId = owner.Id,
+			};
+		}
 
 		if (Config.Instance.forceLocalServer){
 			OnRequestedServerResponse(new PlayFab.MultiplayerModels.RequestMultiplayerServerResponse {

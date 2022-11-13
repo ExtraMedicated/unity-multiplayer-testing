@@ -23,7 +23,7 @@ public class JoinedLobbyUI : MonoBehaviour {
 	// public LobbyUI mainLobbiesUI;
 
 	ExtNetworkRoomManager networkManager;
-
+	bool allPlayersReady;
 	void OnEnable(){
 		leaveLobbyBtn.interactable = true;
 		PlayFabMultiplayer.OnLobbyMemberAdded += OnMemberAdded;
@@ -36,7 +36,7 @@ public class JoinedLobbyUI : MonoBehaviour {
 		// MatchManager2.instance.OnUpdateMatch += UpdateMatch;
 		NetworkServer.RegisterHandler<ChangeReadyStateMessage>(BroadcastPlayerReadyStateChange);
 		NetworkClient.RegisterHandler<ChangeReadyStateMessage>(OnPlayerReadyStateChanged);
-
+		NetworkClient.RegisterHandler<ChangeAllPlayersReadyStateMessage>(OnAllPlayersReadyStateChanged);
 	}
 
 	void OnDisable(){
@@ -46,6 +46,8 @@ public class JoinedLobbyUI : MonoBehaviour {
 		PlayFabMultiplayer.OnLobbyMemberRemoved -= OnMemberRemoved;
 		LobbyUtility.OnLobbyDisconnected -= OnLobbyDisconnected;
 		NetworkServer.UnregisterHandler<ChangeReadyStateMessage>();
+		NetworkClient.UnregisterHandler<ChangeReadyStateMessage>();
+		NetworkClient.UnregisterHandler<ChangeAllPlayersReadyStateMessage>();
 		ClearUI();
 	}
 
@@ -62,6 +64,11 @@ public class JoinedLobbyUI : MonoBehaviour {
 				item.SetReady(msg.ready);
 			}
 		}
+	}
+
+	private void OnAllPlayersReadyStateChanged(ChangeAllPlayersReadyStateMessage msg){
+		allPlayersReady = msg.ready;
+		startGameBtn.gameObject.SetActive(allPlayersReady && PlayerEntity.LocalPlayer.entityKey.Id == lobby.lobbyOwnerId);
 	}
 
 	public void LoadLobby(string lobbyId){
@@ -123,7 +130,7 @@ public class JoinedLobbyUI : MonoBehaviour {
 	void RefreshUI(){
 		lobbyText.text = $"{(lobby.isPublic ? "":"Private ")}Lobby {lobby.LobbyName} ({lobby._lobby.LobbyId})";
 		// levelNameText.text = $"Level: {lobby.levelName}";
-		startGameBtn.gameObject.SetActive(PlayerEntity.LocalPlayer.entityKey.Id == lobby.lobbyOwnerId);
+		startGameBtn.gameObject.SetActive(allPlayersReady && PlayerEntity.LocalPlayer.entityKey.Id == lobby.lobbyOwnerId);
 		RefreshPlayerList();
 	}
 	void ClearUI(){
@@ -167,9 +174,8 @@ public class JoinedLobbyUI : MonoBehaviour {
 		var updateData = new LobbyDataUpdate {
 			MembershipLock = LobbyMembershipLock.Locked,
 		};
-		LobbyUtility.UpdateLobby(lobby._lobby, PlayFab.MultiplayerModels.MembershipLock.Locked);
+		LobbyUtility.UpdateLobby(lobby._lobby, PlayFab.MultiplayerModels.MembershipLock.Locked, () => NetworkingMessages.SendBeginGameMessage());
 		// NetworkClient.Send(new BeginGameMessage {matchId = match.matchId});
-
 	}
 
 	public void LeaveLobby(){
@@ -205,7 +211,7 @@ public class JoinedLobbyUI : MonoBehaviour {
 		// StartCoroutine(DelayCloseLobby());
 		// mainLobbiesUI.SetActive(true);
 
-		PlayerEntity.LocalPlayer.lobbyId = string.Empty;
+		PlayerEntity.LocalPlayer.lobbyInfo = null;
 		NetworkClient.Disconnect();
 	}
 

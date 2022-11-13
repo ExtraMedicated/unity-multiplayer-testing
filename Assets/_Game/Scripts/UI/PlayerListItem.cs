@@ -51,10 +51,8 @@ public class PlayerListItem : MonoBehaviour {
 		NetworkClient.localPlayer.GetComponent<ExtNetworkRoomPlayer>().CmdChangeReadyState(isReady);
 
 		// Server gets this message and broadcasts it to all clients to update the UI.
-		NetworkClient.Send(new ChangeReadyStateMessage {
-			entityId = Player.entityKey.Id,
-			ready = isReady,
-		});
+		// TODO: I think I should be able to use what's already in the networkRoomManager instead of all this.
+		NetworkingMessages.SendChangeReadyStateMessage(Player.entityKey.Id, isReady);
 	}
 
 	public void SetReady(bool ready){

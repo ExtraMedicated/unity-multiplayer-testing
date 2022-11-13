@@ -108,10 +108,7 @@ public class AgentListener : MonoBehaviour {
 	private void OnShutdown()
 	{
 		Debug.Log("Server is shutting down");
-		foreach(var conn in networkManager.Connections)
-		{
-			conn.Connection.Send<ShutdownMessage>(new ShutdownMessage());
-		}
+		NetworkingMessages.SendShutdownMessage();
 		networkManager.StopServer();
 		StartCoroutine(Shutdown());
 	}
@@ -125,12 +122,8 @@ public class AgentListener : MonoBehaviour {
 	private void OnMaintenance(DateTime? NextScheduledMaintenanceUtc)
 	{
 		Debug.Log(string.Format("Maintenance scheduled for: {0}", NextScheduledMaintenanceUtc.Value.ToLongDateString()));
-		foreach (var conn in networkManager.Connections)
-		{
-			conn.Connection.Send<MaintenanceMessage>(new MaintenanceMessage() {
-				ScheduledMaintenanceUTC = (DateTime)NextScheduledMaintenanceUtc
-			});
-		}
+
+		NetworkingMessages.SendMaintenanceMessage(NextScheduledMaintenanceUtc.GetValueOrDefault());
 	}
 	#endif
 }

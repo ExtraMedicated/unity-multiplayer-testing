@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Mirror;
 using UnityEngine;
 
@@ -11,13 +12,75 @@ using UnityEngine;
 // 	public const short MaintenanceMessage = 902;
 // }
 
+public static class NetworkingMessages
+{
+#if DEBUG_NETWORK_MESSAGES
+	const string DEBUG_LINE = "<color=green>{0} ({1})</color>";
+	static void Log(string caller, string msgType){
+		Debug.Log(string.Format(DEBUG_LINE, msgType, caller));
+	}
+	static void SendFromClient<T>(T msg, [CallerMemberName] string caller = "") where T : struct, NetworkMessage {
+		Log(caller, msg.GetType().Name);
+		NetworkClient.Send(msg);
+	}
+	static void SendFromServerToAll<T>(T msg, [CallerMemberName] string caller = "") where T : struct, NetworkMessage {
+		Log(caller, msg.GetType().Name);
+		NetworkServer.SendToAll(msg);
+	}
+	public static void SendThroughConnection<T>(NetworkConnection conn, T msg, [CallerMemberName] string caller = "") where T : struct, NetworkMessage {
+		Log(caller, msg.GetType().Name);
+		conn.Send(msg);
+	}
+#else
+	static void SendFromClient<T>(T msg) where T : struct, NetworkMessage {
+		NetworkClient.Send(msg);
+	}
+	static void SendFromServerToAll<T>(T msg) where T : struct, NetworkMessage {
+		NetworkServer.SendToAll(msg);
+	}
+	public static void SendThroughConnection<T>(NetworkConnection conn, T msg) where T : struct, NetworkMessage {
+		conn.Send(msg);
+	}
+#endif
+
+	public static void SendAuthRequestMessage(){
+		SendFromClient(new AuthRequestMessage {
+			username = PlayerEntity.LocalPlayer.name,
+			entityId = PlayerEntity.LocalPlayer.entityKey.Id,
+			sessionTicket = PlayerEntity.LocalPlayer.sessionTicket,
+		});
+	}
+
+	public static void SendChangeReadyStateMessage(string entityId, bool isReady){
+		SendFromClient(new ChangeReadyStateMessage {
+			entityId = entityId,
+			ready = isReady,
+		});
+	}
+
+	public static void SendChangeAllPlayersReadyStateMessage(bool isReady){
+		SendFromServerToAll(new ChangeAllPlayersReadyStateMessage { ready = true});
+	}
+
+	public static void SendBeginGameMessage(){
+		SendFromClient(new BeginGameMessage());
+	}
+
+	public static void SendMaintenanceMessage(DateTime nextScheduledMaintenanceUtc){
+		SendFromServerToAll(new MaintenanceMessage { ScheduledMaintenanceUTC = nextScheduledMaintenanceUtc });
+	}
+
+	public static void SendShutdownMessage(){
+		SendFromServerToAll(new ShutdownMessage());
+	}
+}
+
 public struct ReceiveAuthenticateMessage : NetworkMessage
 {
 	public string PlayFabId;
 }
 
 public struct ShutdownMessage : NetworkMessage { }
-
 
 public struct MaintenanceMessage : NetworkMessage
 {
@@ -33,6 +96,9 @@ public struct AuthRequestMessage : NetworkMessage {
 
 public struct ChangeReadyStateMessage : NetworkMessage {
 	public string entityId;
+	public bool ready;
+}
+public struct ChangeAllPlayersReadyStateMessage : NetworkMessage {
 	public bool ready;
 }
 
@@ -87,9 +153,7 @@ public struct CreateGamePlayerMessage : NetworkMessage {
 // 	public List<Match> matches;
 // }
 
-public struct BeginGameMessage : NetworkMessage {
-	public string matchId;
-}
+public struct BeginGameMessage : NetworkMessage {}
 
 public struct StopGameMessage : NetworkMessage {
 	public string matchId;

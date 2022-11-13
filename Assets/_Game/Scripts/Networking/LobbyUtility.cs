@@ -155,13 +155,13 @@ public class LobbyUtility : MonoBehaviour {
 	}
 
 
-	public static void UpdateLobby(PlayFab.MultiplayerModels.Lobby lobby, MembershipLock membershipLock){
+	public static void UpdateLobby(PlayFab.MultiplayerModels.Lobby lobby, MembershipLock membershipLock, Action callback){
 		PlayFabMultiplayerAPI.UpdateLobby(
 			new UpdateLobbyRequest {
 				LobbyId = lobby.LobbyId,
 				MembershipLock = membershipLock,
 			},
-			OnLobbyUpdated,
+			r => OnLobbyUpdated(r, callback),
 			e => Debug.LogError(e.ErrorMessage)
 		);
 
@@ -171,8 +171,9 @@ public class LobbyUtility : MonoBehaviour {
 		// );
 	}
 
-	private static void OnLobbyUpdated(LobbyEmptyResult result)
+	private static void OnLobbyUpdated(LobbyEmptyResult result, Action callback)
 	{
 		Debug.Log("OnLobbyUpdated");
+		callback.Invoke();
 	}
 }

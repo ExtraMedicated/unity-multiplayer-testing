@@ -13,7 +13,7 @@ public class PlayerEntity {
 	public static PlayerEntity LocalPlayer;
 
 	public string name;
-	public string lobbyId;
+	public BasicLobbyInfo lobbyInfo;
 	public EntityKey entityKey;
 	public PFEntityKey PFEntityKey; // I think this is only needed for the local player. Probably shouldn't even have it for others.
 	public string sessionTicket;

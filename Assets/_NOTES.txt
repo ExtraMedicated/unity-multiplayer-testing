@@ -1,24 +1,24 @@
-Need lobby leader.
+Fix returning to room scene. Sending message without handler?
+	Regardless, it's probably worth scrapping much of the custom ExtNetworkRoomManager stuff and trying the defaults again.
 
-Add ability to kick players.
 
-Re-integrate PlayFab
 Need to update lobby status and visibility.
 	Also remember to do something when the round is over.
 
 Need to be able to find private lobby.
 
-
-
 PlayFab lobby invitations?
-
 
 What is the proper way to quit a game?
 
+Chat! Voice and text
 
-What if multiple matches use the same scene?
 
 
+
+
+
+(OUTDATED)
 ExtNetworkRoomPlayer is the class that represents a connected player.
 A Match has a list of ExtNetworkRoomPlayers.
 MatchManager handles the logic for creating matches and adding/removing players, and it holds a list of matches which is synced to all clients.

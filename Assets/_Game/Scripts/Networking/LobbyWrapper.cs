@@ -30,5 +30,10 @@ public class LobbyWrapper
 		// isInProgress = lobby.isInProgress;
 		lobbyOwnerId = lobby.Owner.Id;
 	}
+}
 
+[Serializable]
+public class BasicLobbyInfo {
+	public string lobbyId;
+	public string lobbyOwnerId;
 }

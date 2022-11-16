@@ -27,6 +27,7 @@ public class LobbyWrapper
 		currentMembers = (uint)lobby.Members.Count;
 		maxMembers = lobby.MaxPlayers;
 		isPublic = lobby.AccessPolicy == AccessPolicy.Public;
+		ExtDebug.LogJson("LobbyWrapper LobbyData: ", lobby.LobbyData);
 		// isInProgress = lobby.isInProgress;
 		lobbyOwnerId = lobby.Owner.Id;
 	}

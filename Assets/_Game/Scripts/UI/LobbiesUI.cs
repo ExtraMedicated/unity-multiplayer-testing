@@ -68,34 +68,30 @@ public class LobbiesUI : MonoBehaviour
 	}
 
 	void AuthenticateClient(){
-		// isAttemptingAuthentication = true;
-		// Debug.Log("AuthenticateClient " + authenticationMode.ToString());
-		var playerName = PlayerEntity.LocalPlayer.name;
-		// Tell the server that the user logged in.
-		NetworkingMessages.SendAuthRequestMessage();
+		if (PlayFabClientAPI.IsClientLoggedIn()){
+			// Tell the server that the user logged in.
+			NetworkingMessages.SendAuthRequestMessage();
+		} else {
+			OnAuthError("Not logged in.");
+		}
 	}
 
 	private void OnAuthError(string error)
 	{
-		NetworkClient.Disconnect();
 		DisplayMessage(error, "red");
+		NetworkClient.Disconnect();
 	}
 
 	private void OnAuthResponse(AuthResponseMessage msg)
 	{
 		// TODO: Is it redundant to do this here?
-		NetworkClient.connection.authenticationData = new AuthenticationInfo {
-			EntityId = msg.entityId,
-			SessionTicket = msg.sessionTicket,
-		};
+		NetworkClient.connection.authenticationData = msg.playerEntity;
 	}
 
 	void AuthSuccess()
 	{
 		// Debug.Log("Logged in? " + (PlayFabClientAPI.IsClientLoggedIn() ? "Yes" : "No"));
-		// Debug.Log((NetworkClient.connection.authenticationData as AuthenticationInfo).EntityId);
 		Debug.Log("Auth Success!");
-		// Destroy(menuRootCanvas);
 	}
 
 	public void DisplayMessage(string text, string color = ""){
@@ -123,25 +119,8 @@ public class LobbiesUI : MonoBehaviour
 	public void OnClickCreate(){
 		DisplayMessage("Creating Lobby...");
 
-		LobbyUtility.CreateLobby("Test", 5, true);
+		LobbyUtility.CreateLobby("Test", 5, true); // TODO: Make a menu to configure this stuff.
 	}
-
-	// private void OnMatchCreated(CreateMatchResponse msg)
-	// {
-	// 	statusMessage.text = "";
-	// 	if (msg.match != null)
-	// 	{
-	// 		// Lobby was successfully created
-	// 		Debug.Log("Lobby was successfully created: " + msg.match.matchId);
-	// 		addLobbyForm.gameObject.SetActive(false);
-	// 	}
-	// 	else
-	// 	{
-	// 		// Error creating a lobby
-	// 		addLobbyForm.SetError("Error creating lobby");
-	// 	}
-	// 	addLobbyForm.SetBusy(false);
-	// }
 
 	private void OnLobbyCreateAndJoinCompleted(Lobby lobby)
 	{
@@ -167,21 +146,6 @@ public class LobbiesUI : MonoBehaviour
 		if (!fetchingMatches){
 			fetchingMatches = LobbyUtility.FindLobbies();
 			// findLobbiesButton.interactable = false;
-		}
-	}
-
-	IEnumerator UpdateMatches(){
-		// Initial delay, just for the heck of it.
-		yield return new WaitForSeconds(1f);
-		var normalInterval = new WaitForSeconds(MATCHES_UPDATE_INTERVAL);
-		var waitInterval = new WaitForSeconds(0.3f);
-		while (true){
-			// If a previous request is somehow still pending a response, keep waiting.
-			while (fetchingMatches){
-				yield return waitInterval;
-			}
-			FindLobbies();
-			yield return normalInterval;
 		}
 	}
 
@@ -235,7 +199,7 @@ public class LobbiesUI : MonoBehaviour
 		SetLobbyListEnabled(false);
 		// NetworkClient.Send(new AddPlayerToMatchRequest { lobbyId = matchId });
 		PlayFabMultiplayer.JoinLobby(
-			PlayerEntity.LocalPlayer.PFEntityKey,
+			PlayerEntity.LocalPlayer.entityKey,
 			connectionString,
 			new Dictionary<string, string>{
 				{"PlayerName", PlayerEntity.LocalPlayer.name},
@@ -265,7 +229,7 @@ public class LobbiesUI : MonoBehaviour
 		DisplayMessage("Connecting...");
 		Debug.Log($"{PlayerEntity.LocalPlayer?.name} JoinedLobby {lobby.Id}");
 		if (lobby.TryGetOwner(out PFEntityKey owner)){
-			PlayerEntity.LocalPlayer.lobbyInfo = new BasicLobbyInfo {
+			LobbyUtility.CurrentlyJoinedLobby = new BasicLobbyInfo {
 				lobbyId = lobby.Id,
 				lobbyOwnerId = owner.Id,
 			};

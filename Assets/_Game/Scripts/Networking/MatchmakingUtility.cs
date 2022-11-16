@@ -46,7 +46,7 @@ public class MatchmakingUtility : MonoBehaviour
 
 	private static void PF_OnTicketCanceled(CancelMatchmakingTicketResult result)
 	{
-		ExtDebug.LogJson("OnTicketCanceled", result);
+		// ExtDebug.LogJson("OnTicketCanceled", result);
 		OnTicketCanceled?.Invoke();
 	}
 
@@ -55,7 +55,7 @@ public class MatchmakingUtility : MonoBehaviour
 		if (LobbyError.SUCCEEDED(result)){
 			_ticket = ticket;
 			Debug.Log("OnMatchmakingTicketCompleted");
-			ExtDebug.LogJson(ticket);
+			// ExtDebug.LogJson(ticket);
 			OnTicketCreated?.Invoke(ticket);
 		} else {
 			Debug.Log("Failed to create matchmaking ticket.");
@@ -64,14 +64,14 @@ public class MatchmakingUtility : MonoBehaviour
 
 	public static void CreateMatchmakingTicket(){
 		Debug.Log("CreateMatchmakingTicket");
-		var matchUser = new MatchUser(PlayerEntity.LocalPlayer.PFEntityKey, PlayerEntity.LocalPlayer.GetSerializedProperties());
+		var matchUser = new MatchUser(PlayerEntity.LocalPlayer.entityKey, PlayerEntity.LocalPlayer.GetSerializedProperties());
 		PlayFabMultiplayer.CreateMatchmakingTicket(matchUser, QUEUE_NAME, 120);
 	}
 
 	private void PF_OnMatchmakingTicketStatusChanged(MatchmakingTicket ticket)
 	{
 		Debug.Log("PF_OnMatchmakingTicketStatusChanged");
-		ExtDebug.LogJson(ticket);
+		// ExtDebug.LogJson(ticket);
 		_ticket = ticket;
 		OnTicketStatusChanged?.Invoke(ticket.Status);
 		switch (ticket.Status){
@@ -126,13 +126,13 @@ public class MatchmakingUtility : MonoBehaviour
 
 	private static void OnGetMatch(GetMatchResult result)
 	{
-		ExtDebug.LogJson("OnGetMatch :", result);
+		// ExtDebug.LogJson("OnGetMatch :", result);
 	}
 
 	public static void GoToArrangedLobby(string LobbyArrangementString){
 		Debug.Log("GoToArrangedLobby: " + LobbyArrangementString);
 		PlayFabMultiplayer.JoinArrangedLobby(
-			PlayerEntity.LocalPlayer.PFEntityKey,
+			PlayerEntity.LocalPlayer.entityKey,
 			LobbyArrangementString,
 			new LobbyArrangedJoinConfiguration {
 				AccessPolicy = LobbyAccessPolicy.Public, // TODO: Should this be configurable?

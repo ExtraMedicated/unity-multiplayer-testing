@@ -27,20 +27,19 @@ public class MultiplayerMenu : MonoBehaviour
 			return mm;
 		}
 	}
+	ExtNetworkRoomManager networkManager;
 
 	bool isAttemptingAuthentication;
-	// void Start(){
-	// 	// Need to add the PlayfabMultiplayerEventProcessor if it doesn't exist. (Not 100% sure if it's needed on the client side.)
-	// 	if (FindObjectOfType<PlayfabMultiplayerEventProcessor>() == null){
-	// 		Instantiate(pfEventProcessorPrefab);
-	// 	}
-	// }
 
 	void OnEnable(){
 		loginUtility.OnError += OnError;
 		statusText.text = string.Empty;
 		playerNameInput.inputEnabled = true;
 		mainMenu.gameObject.SetActive(false);
+
+		if (networkManager == null){
+			networkManager = FindObjectOfType<ExtNetworkRoomManager>();
+		}
 
 		if (PlayerEntity.LocalPlayer?.HasSession ?? false){
 			ViewLobbies();
@@ -98,6 +97,10 @@ public class MultiplayerMenu : MonoBehaviour
 
 	void AttemptPlayfabLogin(){
 		DisplayMessage("Logging in...");
+		// Make sure the authenticator is set. (Although it isn't actually used until connecting to a lobby.)
+		if (networkManager.authenticator == null){
+			networkManager.authenticator = networkManager.GetComponent<NewNetworkAuthenticator>();
+		}
 		isAttemptingAuthentication = true;
 		playerNameInput.inputEnabled = false;
 		var playerName = !string.IsNullOrWhiteSpace(playerNameInput.text) ? playerNameInput.text : "Nameless nobody";

@@ -121,7 +121,7 @@ public class LoginUtility : MonoBehaviour {
 			Entity = new EntityKey(entity.Id, entity.Type),
 			Objects = setObjects,
 		}, (setResult) => {
-			ExtDebug.LogJson("setResult: ", setResult);
+			// ExtDebug.LogJson("setResult: ", setResult);
 			var pInfo = setObjects[0].DataObject as PlayerInfo;
 			PlayerEntity.LocalPlayer = new PlayerEntity(entity, pInfo, sessionTicket);
 

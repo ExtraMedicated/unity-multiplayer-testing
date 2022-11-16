@@ -16,7 +16,7 @@ public class PickupItem : NetworkBehaviour {
 		if (other.tag == "GasCan")
 		{
 			playerController.AddFuel(100);
-			Destroy(other.gameObject);
+			NetworkServer.Destroy(other.gameObject);
 		}
 
 	}

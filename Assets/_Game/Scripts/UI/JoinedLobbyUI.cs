@@ -4,15 +4,11 @@ using PlayFab.Multiplayer;
 using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
-using System;
-using PlayFab;
-using PlayFab.DataModels;
-using UnityEngine.SceneManagement;
 using Mirror;
 using System.Linq;
 
 public class JoinedLobbyUI : MonoBehaviour {
-	public LobbyWrapper lobby;
+	public LobbyWrapper lobby = new LobbyWrapper();
 
 	[SerializeField] TMP_Text lobbyText;
 	// [SerializeField] TMP_Text levelNameText;
@@ -20,10 +16,9 @@ public class JoinedLobbyUI : MonoBehaviour {
 	[SerializeField] Button leaveLobbyBtn;
 	[SerializeField] Button startGameBtn;
 	public GameObject playerListItemPrefab;
-	// public LobbyUI mainLobbiesUI;
 
 	ExtNetworkRoomManager networkManager;
-	bool allPlayersReady;
+	public Dictionary<uint, bool> playerReadyStates = new Dictionary<uint, bool>();
 	void OnEnable(){
 		leaveLobbyBtn.interactable = true;
 		PlayFabMultiplayer.OnLobbyMemberAdded += OnMemberAdded;
@@ -32,55 +27,39 @@ public class JoinedLobbyUI : MonoBehaviour {
 		if (networkManager == null){
 			networkManager = FindObjectOfType<ExtNetworkRoomManager>();
 		}
-		// StartCoroutine(DelayedOnEnable());
-		// MatchManager2.instance.OnUpdateMatch += UpdateMatch;
-		NetworkServer.RegisterHandler<ChangeReadyStateMessage>(BroadcastPlayerReadyStateChange);
-		NetworkClient.RegisterHandler<ChangeReadyStateMessage>(OnPlayerReadyStateChanged);
-		NetworkClient.RegisterHandler<ChangeAllPlayersReadyStateMessage>(OnAllPlayersReadyStateChanged);
+		networkManager.OnAllPlayersReadyStateChanged += OnChangeLobbyReady;
 	}
 
 	void OnDisable(){
-		// if (MatchManager2.instance != null)
-		// MatchManager2.instance.OnUpdateMatch -= UpdateMatch;
 		PlayFabMultiplayer.OnLobbyMemberAdded -= OnMemberAdded;
 		PlayFabMultiplayer.OnLobbyMemberRemoved -= OnMemberRemoved;
 		LobbyUtility.OnLobbyDisconnected -= OnLobbyDisconnected;
-		NetworkServer.UnregisterHandler<ChangeReadyStateMessage>();
-		NetworkClient.UnregisterHandler<ChangeReadyStateMessage>();
-		NetworkClient.UnregisterHandler<ChangeAllPlayersReadyStateMessage>();
+		networkManager.OnAllPlayersReadyStateChanged -= OnChangeLobbyReady;
 		ClearUI();
 	}
 
-	private void BroadcastPlayerReadyStateChange(NetworkConnectionToClient conn, ChangeReadyStateMessage msg)
-	{
-		NetworkServer.SendToAll(msg);
-	}
-
-	private void OnPlayerReadyStateChanged(ChangeReadyStateMessage msg)
-	{
-		for (int i=0; i<playerListPanel.childCount; i++){
-			var item = playerListPanel.GetChild(i).gameObject.GetComponent<PlayerListItem>();
-			if (item != null && item.Player.entityKey.Id == msg.entityId){
-				item.SetReady(msg.ready);
-			}
-		}
-	}
-
-	private void OnAllPlayersReadyStateChanged(ChangeAllPlayersReadyStateMessage msg){
-		allPlayersReady = msg.ready;
-		startGameBtn.gameObject.SetActive(allPlayersReady && PlayerEntity.LocalPlayer.entityKey.Id == lobby.lobbyOwnerId);
+	void OnChangeLobbyReady(bool ready){
+		Debug.Log("OnChangeLobbyReady " + ready);
+		startGameBtn.gameObject.SetActive(ready && PlayerEntity.LocalPlayer != null && PlayerEntity.LocalPlayer.entityKey.Id == lobby.lobbyOwnerId);
 	}
 
 	public void LoadLobby(string lobbyId){
+		Debug.Log($"LoadLobby {lobbyId}");
+		// Need to at least have the lobby id in case there's an error here. Otherwise, the "Leave" button won't work.
+		if (string.IsNullOrEmpty(lobby.id)){
+			lobby.id = lobbyId;
+		}
 		LobbyUtility.GetLobby(
 			lobbyId,
 			l => {
-				ExtDebug.LogJson(l);
+				// ExtDebug.LogJson(l);
 				lobby = new LobbyWrapper(l);
 				RefreshUI();
 			},
 			OnError
 		);
+		StopAllCoroutines();
+		StartCoroutine(LobbyCheck());
 	}
 
 	private void OnError(string error)
@@ -89,30 +68,9 @@ public class JoinedLobbyUI : MonoBehaviour {
 		// mainLobbiesUI.DisplayMessage(error, "red");
 	}
 
-	// IEnumerator DelayedOnEnable(){
-	// 	yield return new WaitForEndOfFrame();
-	// 	MatchManager2.instance.OnUpdateMatch += OnUpdateMatch;
-	// }
-
-	// public void UpdateMatch(Lobby lobby)
-	// {
-	// 	Debug.Log("OnUpdateMatch");
-	// 	this.lobby = lobby;
-	// 	RefreshUI();
-	// }
-
-	// public void PlayerLeft(uint playerNetId){
-	// 	match.players.Remove(match.players.Find(p => p.netId == playerNetId));
-	// 	RefreshPlayerList();
-	// }
-
 	private void OnMemberAdded(Lobby lobby, PFEntityKey member)
 	{
 		Debug.Log($"LobbyMemberAdded {member.Id}");
-		// ExtDebug.LogJson(lobby);
-
-		// Apparently I need to reload the lobby to update the list of members.
-		LoadLobby(lobby.Id);
 	}
 
 	private void OnMemberRemoved(Lobby lobby, PFEntityKey member, LobbyMemberRemovedReason reason)
@@ -121,16 +79,25 @@ public class JoinedLobbyUI : MonoBehaviour {
 			LeftLobby(lobby.Id);
 		} else {
 			Debug.Log($"LobbyMemberRemoved {member.Id} | {reason}");
-			// Apparently I need to reload the lobby to update the list of members.
-			LoadLobby(lobby.Id);
-			// RefreshPlayerList();
+			RemovePlayerFromList(member);
+			if (lobby.TryGetOwner(out var owner)){
+				Debug.Log("New Lobby owner: " + owner.Id);
+				RefreshLobbyOwner(owner.Id);
+			}
+		}
+	}
+
+	void RefreshLobbyOwner(string entityId){
+		lobby.lobbyOwnerId = entityId;
+		foreach (var item in playerListPanel.GetComponentsInChildren<PlayerListItem>()){
+			item.RefreshLobbyOwner();
 		}
 	}
 
 	void RefreshUI(){
-		lobbyText.text = $"{(lobby.isPublic ? "":"Private ")}Lobby {lobby.LobbyName} ({lobby._lobby.LobbyId})";
+		lobbyText.text = $"{(lobby.isPublic ? "":"Private ")}Lobby {lobby.LobbyName}";
 		// levelNameText.text = $"Level: {lobby.levelName}";
-		startGameBtn.gameObject.SetActive(allPlayersReady && PlayerEntity.LocalPlayer.entityKey.Id == lobby.lobbyOwnerId);
+		startGameBtn.gameObject.SetActive(networkManager.allPlayersReady && PlayerEntity.LocalPlayer.entityKey.Id == lobby.lobbyOwnerId);
 		RefreshPlayerList();
 	}
 	void ClearUI(){
@@ -145,28 +112,23 @@ public class JoinedLobbyUI : MonoBehaviour {
 		for (int i=playerListPanel.childCount-1; i>=0; i--){
 			Destroy(playerListPanel.GetChild(i).gameObject);
 		}
-		foreach (var member in lobby._lobby.Members){
-			ExtDebug.LogJson("Player Entity: ", member);
-			var item = Instantiate(playerListItemPrefab, playerListPanel).GetComponent<PlayerListItem>();
-			item.lobbyUI = this;
-			var playerEntity = new PlayerEntity(member);
-			// var player = networkManager.playerMap[playerEntity.entityKey.Id];
-			item.SetPlayer(playerEntity);
-			// var getRequest = new GetObjectsRequest {Entity = new PlayFab.DataModels.EntityKey { Id = member.Id, Type = member.Type }};
-			// //PlayFab.PlayFabClientAPI.GetPlayerProfile();
-			// PlayFabDataAPI.GetObjects(getRequest,
-			// 	result => {
-			// 		var playerInfo = result.Objects["PlayerData"]?.DataObject as PlayerInfo;
-			// 		if (playerInfo != null){
-			// 			item.SetPlayer(new PlayerEntity(member, playerInfo), lobby.lobbyOwnerId);
-			// 		}
-			// 	},
-			// 	error => {
-			// 		Debug.LogError(error);
-			// 		item.SetPlayer(new PlayerEntity(member, new PlayerInfo {PlayerName = "(ERROR)"}), lobby.lobbyOwnerId);
-			// 	}
-			// );
-			// item.SetPlayer(new PlayerEntity(member), lobby.lobbyOwnerId);
+		foreach (var p in networkManager.roomSlots.Select(p => p as ExtNetworkRoomPlayer)){
+			AddPlayerToList(p);
+		}
+	}
+	void AddPlayerToList(ExtNetworkRoomPlayer player){
+		var item = Instantiate(playerListItemPrefab, playerListPanel).GetComponent<PlayerListItem>();
+		item.lobbyUI = this;
+		item.SetPlayer(player);
+	}
+
+	void RemovePlayerFromList(PFEntityKey member){
+		var players = playerListPanel.GetComponentsInChildren<PlayerListItem>();
+		for (int i=0; i<players.Length; i++){
+			if(players[i].networkRoomPlayer.playerEntity.entityKey.Id == member.Id){
+				Destroy(players[i].gameObject);
+				return;
+			}
 		}
 	}
 
@@ -175,15 +137,10 @@ public class JoinedLobbyUI : MonoBehaviour {
 			MembershipLock = LobbyMembershipLock.Locked,
 		};
 		LobbyUtility.UpdateLobby(lobby._lobby, PlayFab.MultiplayerModels.MembershipLock.Locked, () => NetworkingMessages.SendBeginGameMessage());
-		// NetworkClient.Send(new BeginGameMessage {matchId = match.matchId});
 	}
 
 	public void LeaveLobby(){
 		StartCoroutine(TempDisableLeaveBtn());
-		// NetworkClient.Send(new RemovePlayerFromMatchMessage {
-		// 	networkPlayer = ExtNetworkRoomPlayer.localPlayer,
-		// 	matchId = match.matchId,
-		// });
 		LobbyUtility.LeaveLobby(lobby.id, PlayerEntity.LocalPlayer.entityKey, OnError);
 	}
 
@@ -204,22 +161,25 @@ public class JoinedLobbyUI : MonoBehaviour {
 	public void LeftLobby(string lobbyId){
 		Debug.Log($"{PlayerEntity.LocalPlayer?.name} LeftLobby {lobbyId}");
 		// DisplayMessage($"{PlayerEntity.LocalPlayer?.name} LeftLobby {lobbyId}");
-		// NetworkClient.Send(new RemovePlayerFromMatchMessage {lobbyId = lobby.Id});
-		// MatchManager.instance.RemovePlayerFromMatch(ExtNetworkRoomPlayer.localPlayer, lobby.Id);
-
-		// Delay to allow time for changes to propagate.
-		// StartCoroutine(DelayCloseLobby());
-		// mainLobbiesUI.SetActive(true);
-
-		PlayerEntity.LocalPlayer.lobbyInfo = null;
+		LobbyUtility.CurrentlyJoinedLobby = null;
 		NetworkClient.Disconnect();
 	}
-
-	// IEnumerator DelayCloseLobby(){
-	// 	yield return new WaitForSeconds(CLOSE_LOBBY_DELAY);
-	// 	joinedLobbyUI.gameObject.SetActive(false);
-	// 	joinedLobbyUI.lobby = null;
-	// 	FindLobbies();
-	// }
 	#endregion
+
+
+	// TODO: I kinda hate this. Shouldn't I be able to fire an event handler to do this?
+	IEnumerator LobbyCheck(){
+		var delay = new WaitForSeconds(2f);
+		while (true){
+			yield return delay;
+			if (playerListPanel.childCount != networkManager.roomSlots.Count){
+				RefreshPlayerList();
+			}
+		}
+	}
+
+	public void CheckReady(){
+		ExtDebug.LogJson($"Check Ready: ", playerReadyStates);
+		startGameBtn.gameObject.SetActive(lobby.lobbyOwnerId == PlayerEntity.LocalPlayer.entityKey.Id && !playerReadyStates.ContainsValue(false));
+	}
 }

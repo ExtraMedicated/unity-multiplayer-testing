@@ -10,11 +10,17 @@ public class LobbyUtility : MonoBehaviour {
 
 	const float MIN_POLLING_FREQUENCY = 6f;
 	static LobbyUtility instance;
+	BasicLobbyInfo currentlyJoinedLobby;
 
 	public static event Action<PlayFab.Multiplayer.Lobby> OnLobbyCreateAndJoinCompleted;
 	public static event Action<PlayFab.Multiplayer.Lobby> OnLobbyDisconnected;
 	public static event Action<IList<LobbySearchResult>> OnLobbyFindLobbiesCompleted;
 	public static event Action<PlayFab.Multiplayer.Lobby> OnLobbyJoinCompleted;
+
+	public static BasicLobbyInfo CurrentlyJoinedLobby {
+		get => instance.currentlyJoinedLobby;
+		set => instance.currentlyJoinedLobby = value;
+	}
 
 	static DateTime timeOfLastSearch = DateTime.MinValue;
 
@@ -53,7 +59,7 @@ public class LobbyUtility : MonoBehaviour {
 		if ((DateTime.Now - timeOfLastSearch).TotalSeconds > MIN_POLLING_FREQUENCY){
 			Debug.Log("------------- FindLobbies --------------");
 			LobbySearchConfiguration lobbySearchConfig = new LobbySearchConfiguration();
-			PlayFabMultiplayer.FindLobbies(PlayerEntity.LocalPlayer.PFEntityKey, lobbySearchConfig);
+			PlayFabMultiplayer.FindLobbies(PlayerEntity.LocalPlayer.entityKey, lobbySearchConfig);
 			timeOfLastSearch = DateTime.Now;
 			return true;
 		}
@@ -71,12 +77,12 @@ public class LobbyUtility : MonoBehaviour {
 
 	private static void OnGetLobby(GetLobbyResult lobbyResult, Action<PlayFab.MultiplayerModels.Lobby> callback)
 	{
-		Debug.Log("OnGetLobby");
+		ExtDebug.LogJson("OnGetLobby", lobbyResult.Lobby);
 		callback.Invoke(lobbyResult.Lobby);
 	}
 
 	public static void LeaveLobby(string lobbyId, EntityKey member, Action<string> onErrorCallback){
-		ExtDebug.LogJson($"LeaveLobby {lobbyId}", member);
+		// ExtDebug.LogJson($"LeaveLobby {lobbyId}", member);
 		PlayFabMultiplayerAPI.LeaveLobby(
 			new LeaveLobbyRequest {
 				LobbyId = lobbyId,
@@ -88,7 +94,7 @@ public class LobbyUtility : MonoBehaviour {
 	}
 
 	public static void RemoveMemberFromLobby(string lobbyId, EntityKey member, Action<string> onErrorCallback){
-		ExtDebug.LogJson($"RemoveMemberFromLobby {lobbyId}", member);
+		// ExtDebug.LogJson($"RemoveMemberFromLobby {lobbyId}", member);
 		PlayFabMultiplayerAPI.RemoveMember(
 			new RemoveMemberFromLobbyRequest {
 				LobbyId = lobbyId,
@@ -121,7 +127,7 @@ public class LobbyUtility : MonoBehaviour {
 		// joinConfig.MemberProperties["MemberProp2"] = "MemberValue2";
 
 		PlayFabMultiplayer.CreateAndJoinLobby(
-			PlayerEntity.LocalPlayer.PFEntityKey,
+			PlayerEntity.LocalPlayer.entityKey,
 			createConfig,
 			joinConfig);
 	}
@@ -164,11 +170,6 @@ public class LobbyUtility : MonoBehaviour {
 			r => OnLobbyUpdated(r, callback),
 			e => Debug.LogError(e.ErrorMessage)
 		);
-
-		// lobby. (
-		// 	PlayerEntity.LocalPlayer.PFEntityKey,
-		// 	updateData
-		// );
 	}
 
 	private static void OnLobbyUpdated(LobbyEmptyResult result, Action callback)

@@ -27,14 +27,7 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 		}
 	}
 
-
-	public static ExtNetworkRoomPlayer localPlayer;
-	[SyncVar] public string entityId;
-	[SyncVar] public string playerName;
-	[SyncVar] public string matchId;
-	[SyncVar] public Player gamePlayer;
-	// public Lobby lobby;
-
+	[SyncVar] public PlayerEntity playerEntity;
 
 	#region Start & Stop Callbacks
 
@@ -92,11 +85,6 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 
 	void ServerDisconnect () {
 		if (NetworkServer.active){
-			if (!string.IsNullOrEmpty(matchId)){
-				Debug.Log($"ServerDisconnect | matchId = {matchId}");
-				// MatchManager.instance.RemovePlayerFromMatch(this, matchId);
-				matchId = null;
-			}
 			TargetDisconnectGame();
 		}
 	}
@@ -129,116 +117,38 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 		}
 	}
 
+	/// <summary>
+	/// Called when the local player object has been set up.
+	/// <para>This happens after OnStartClient(), as it is triggered by an ownership message from the server. This is an appropriate place to activate components or functionality that should only be active for the local player, such as cameras and input.</para>
+	/// </summary>
+	public override void OnStartLocalPlayer() {
+		Debug.Log($"OnStartLocalPlayer {gameObject}");
+		// authInfo = NetworkClient.connection?.authenticationData as AuthenticationInfo;
+		// // If user is not logged in through PlayFab, show the default lobby UI.
+		// if (authInfo != null && !string.IsNullOrEmpty(authInfo.SessionTicket)){
+		// 	Debug.Log("Using PlayFab");
+		// 	playerEntityKey = new PFEntityKey(
+		// 		authInfo.EntityId,
+		// 		PLAYER_ENTITY_TYPE); // PlayFab user's entity key
+		// 	showRoomGUI = false;
+		// } else {
+		// 	Debug.Log("Not Using PlayFab");
+		// }
+		// localPlayer = this;
+	}
 
 	// /// <summary>
-	// /// Called when the local player object has been set up.
-	// /// <para>This happens after OnStartClient(), as it is triggered by an ownership message from the server. This is an appropriate place to activate components or functionality that should only be active for the local player, such as cameras and input.</para>
+	// /// This is invoked on behaviours that have authority, based on context and <see cref="NetworkIdentity.hasAuthority">NetworkIdentity.hasAuthority</see>.
+	// /// <para>This is called after <see cref="OnStartServer">OnStartServer</see> and before <see cref="OnStartClient">OnStartClient.</see></para>
+	// /// <para>When <see cref="NetworkIdentity.AssignClientAuthority"/> is called on the server, this will be called on the client that owns the object. When an object is spawned with <see cref="NetworkServer.Spawn">NetworkServer.Spawn</see> with a NetworkConnectionToClient parameter included, this will be called on the client that owns the object.</para>
 	// /// </summary>
-	// public override void OnStartLocalPlayer() {
-	// 	Debug.Log($"OnStartLocalPlayer {gameObject}");
-	// 	authInfo = NetworkClient.connection?.authenticationData as AuthenticationInfo;
-	// 	// If user is not logged in through PlayFab, show the default lobby UI.
-	// 	if (authInfo != null && !string.IsNullOrEmpty(authInfo.SessionTicket)){
-	// 		Debug.Log("Using PlayFab");
-	// 		playerEntityKey = new PFEntityKey(
-	// 			authInfo.EntityId,
-	// 			PLAYER_ENTITY_TYPE); // PlayFab user's entity key
-	// 		showRoomGUI = false;
-	// 	} else {
-	// 		Debug.Log("Not Using PlayFab");
-	// 	}
-	// 	localPlayer = this;
-	// }
+	// public override void OnStartAuthority() { }
 
-	/// <summary>
-	/// This is invoked on behaviours that have authority, based on context and <see cref="NetworkIdentity.hasAuthority">NetworkIdentity.hasAuthority</see>.
-	/// <para>This is called after <see cref="OnStartServer">OnStartServer</see> and before <see cref="OnStartClient">OnStartClient.</see></para>
-	/// <para>When <see cref="NetworkIdentity.AssignClientAuthority"/> is called on the server, this will be called on the client that owns the object. When an object is spawned with <see cref="NetworkServer.Spawn">NetworkServer.Spawn</see> with a NetworkConnectionToClient parameter included, this will be called on the client that owns the object.</para>
-	/// </summary>
-	public override void OnStartAuthority() { }
-
-	/// <summary>
-	/// This is invoked on behaviours when authority is removed.
-	/// <para>When NetworkIdentity.RemoveClientAuthority is called on the server, this will be called on the client that owns the object.</para>
-	/// </summary>
-	public override void OnStopAuthority() { }
-
-	// [TargetRpc]
-	// void TargetBeginGame(){
-
-	// 	// Turn off lobby canvas.
-	// 	FindObjectOfType<JoinedLobbyUI>().transform.root.gameObject.SetActive(false);
-
-	// 	// Additively load game scene.
-	// 	// SceneManager.LoadScene("Game", LoadSceneMode.Additive);
-	// 	Camera.main.gameObject.SetActive(false);
-	// 	SceneManager.LoadSceneAsync(MatchManager.instance.GetMatchById(matchId).level, LoadSceneMode.Additive).completed += (h) => {
-	// 		// Debug.Log("---- Game scene loaded ----");
-	// 		Debug.Log("---- Level scene loaded ----");
-	// 		var points = GameObject.FindObjectsOfType<NetworkStartPosition>();
-	// 		if (points.Length > 0){
-	// 			var p = points[UnityEngine.Random.Range(0, points.Length)];
-	// 			transform.position = p.transform.position;
-	// 			transform.rotation = p.transform.rotation;
-	// 		}
-	// 		// // gameObject.SetActive(true);
-	// 		// NetworkClient.Send(new CreateGamePlayerMessage{
-	// 		// 	name = name,
-	// 		// 	color = Random.ColorHSV(), //color,
-	// 		// });
-	// 		// // UILobby.instance.gameObject.SetActive(false);
-	// 	};
-	// }
-
-	// [TargetRpc]
-	// public void TargetBeginGame(){
-
-	// 	// Turn off lobby canvas.
-	// 	FindObjectOfType<JoinedLobbyUI>().transform.root.gameObject.SetActive(false);
-
-	// 	NetworkClient.Send(new CreateGamePlayerMessage{
-	// 		name = name,
-	// 		color = UnityEngine.Random.ColorHSV(), //color,
-	// 	});
-	// }
-
-	// public void TriggerStopGameFromServer(){
-	// 	Debug.Log("TriggerStopGameFromServer");
-	// 	// Give control back to the room player.
-	// 	NetworkServer.ReplacePlayerForConnection(gamePlayer.netIdentity.connectionToClient, gameObject);
-	// 	TargetStopGame();
-	// 	gamePlayer = null;
-	// 	// If the game player is in the level scene, then I don't think I'd need to destroy it separately here.
-	// }
-
-	// [TargetRpc]
-	// void TargetStopGame(){
-	// 	throw new NotImplementedException();
-	// 	// // Turn on lobby canvas.
-	// 	// var canvas = FindObjectOfType<JoinedLobbyUI>(true).transform.root.gameObject;
-	// 	// Debug.Log("TargetStopGame", canvas);
-	// 	// SceneManager.UnloadSceneAsync(MatchManager.instance.GetMatchById(matchId).level);
-	// 	// // // If the game player is in the level scene, then I don't think I'd need to destroy it separately like this.
-	// 	// // if (gamePlayer != null){
-	// 	// // 	Debug.Log("Destroy(gamePlayer.gameObject);");
-	// 	// // 	Destroy(gamePlayer.gameObject);
-	// 	// // }
-	// 	// canvas.SetActive(true);
-	// }
-	// Called from the player object.
-	// public void StopGame(){
-	// 	// Turn on lobby canvas.
-	// 	var canvas = FindObjectOfType<JoinedLobbyUI>(true).transform.root.gameObject;
-	// 	Debug.Log("TargetStopGame", canvas);
-	// 	SceneManager.UnloadSceneAsync(MatchManager.instance.GetMatchById(matchId).level);
-
-	// 	// If the game player is in the level scene, then I don't think I'd need to destroy it separately like this.
-	// 	if (gamePlayer != null){
-	// 		Debug.Log("Destroy(gamePlayer.gameObject);");
-	// 		Destroy(gamePlayer.gameObject);
-	// 	}
-	// 	canvas.SetActive(true);
-	// }
+	// /// <summary>
+	// /// This is invoked on behaviours when authority is removed.
+	// /// <para>When NetworkIdentity.RemoveClientAuthority is called on the server, this will be called on the client that owns the object.</para>
+	// /// </summary>
+	// public override void OnStopAuthority() { }
 
 	#endregion
 
@@ -249,38 +159,42 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 	/// <para>Note: isLocalPlayer is not guaranteed to be set until OnStartLocalPlayer is called.</para>
 	/// </summary>
 	public override void OnClientEnterRoom() {
-		Debug.Log($"OnClientEnterRoom {SceneManager.GetActiveScene().path} | {networkManager.RoomScene}");
+		Debug.Log($"OnClientEnterRoom {SceneManager.GetActiveScene().path} | {networkManager.RoomScene} | {playerEntity.name + playerEntity.entityKey.Id}");
 		if (SceneManager.GetActiveScene().path == networkManager.RoomScene){
-			var lobbyUI = FindObjectOfType<JoinedLobbyUI>();
-			// if (lobbyUI.lobby == null){
-				lobbyUI.LoadLobby(PlayerEntity.LocalPlayer.lobbyInfo.lobbyId);
-			// }
+			if (playerEntity != null && playerEntity.entityKey.Id == PlayerEntity.LocalPlayer?.entityKey.Id){
+				var lobbyUI = FindObjectOfType<JoinedLobbyUI>(true);
+				lobbyUI.gameObject.SetActive(true);
+				Debug.Log("lobbyUI " + lobbyUI);
+				if (LobbyUtility.CurrentlyJoinedLobby != null){
+					lobbyUI.LoadLobby(LobbyUtility.CurrentlyJoinedLobby.lobbyId);
+				}
+			}
 		}
 	}
 
-	/// <summary>
-	/// This is a hook that is invoked on all player objects when exiting the room.
-	/// </summary>
-	public override void OnClientExitRoom() { Debug.Log($"OnClientExitRoom {SceneManager.GetActiveScene().path}"); }
+	// /// <summary>
+	// /// This is a hook that is invoked on all player objects when exiting the room.
+	// /// </summary>
+	// public override void OnClientExitRoom() { Debug.Log($"OnClientExitRoom {SceneManager.GetActiveScene().path}"); }
 
 	#endregion
 
 	#region SyncVar Hooks
 
-	/// <summary>
-	/// This is a hook that is invoked on clients when the index changes.
-	/// </summary>
-	/// <param name="oldIndex">The old index value</param>
-	/// <param name="newIndex">The new index value</param>
-	public override void IndexChanged(int oldIndex, int newIndex) { Debug.Log($"IndexChanged {newIndex}"); }
+	// /// <summary>
+	// /// This is a hook that is invoked on clients when the index changes.
+	// /// </summary>
+	// /// <param name="oldIndex">The old index value</param>
+	// /// <param name="newIndex">The new index value</param>
+	// public override void IndexChanged(int oldIndex, int newIndex) { Debug.Log($"IndexChanged {newIndex}"); }
 
-	/// <summary>
-	/// This is a hook that is invoked on clients when a RoomPlayer switches between ready or not ready.
-	/// <para>This function is called when the a client player calls SendReadyToBeginMessage() or SendNotReadyToBeginMessage().</para>
-	/// </summary>
-	/// <param name="oldReadyState">The old readyState value</param>
-	/// <param name="newReadyState">The new readyState value</param>
-	public override void ReadyStateChanged(bool oldReadyState, bool newReadyState) { Debug.Log($"ReadyStateChanged {newReadyState}"); }
+	// /// <summary>
+	// /// This is a hook that is invoked on clients when a RoomPlayer switches between ready or not ready.
+	// /// <para>This function is called when the a client player calls SendReadyToBeginMessage() or SendNotReadyToBeginMessage().</para>
+	// /// </summary>
+	// /// <param name="oldReadyState">The old readyState value</param>
+	// /// <param name="newReadyState">The new readyState value</param>
+	// public override void ReadyStateChanged(bool oldReadyState, bool newReadyState) { Debug.Log($"ReadyStateChanged {newReadyState}"); }
 
 	#endregion
 

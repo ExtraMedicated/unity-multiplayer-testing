@@ -43,6 +43,8 @@ namespace Mirror
             ushort msgType = GetId<T>();
             writer.WriteUShort(msgType);
 
+			// Debug.Log($"Pack Message {typeof(T).Name} {msgType}");
+
             // serialize message into writer
             writer.Write(message);
         }

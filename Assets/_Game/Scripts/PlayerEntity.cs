@@ -13,17 +13,16 @@ public class PlayerEntity {
 	public static PlayerEntity LocalPlayer;
 
 	public string name;
-	public BasicLobbyInfo lobbyInfo;
 	public EntityKey entityKey;
-	public PFEntityKey PFEntityKey; // I think this is only needed for the local player. Probably shouldn't even have it for others.
 	public string sessionTicket;
 
 	public bool HasSession => !string.IsNullOrEmpty(sessionTicket);
 
-	public PlayerEntity(PFEntityKey entity, PlayerInfo playerInfo, string sessionTicket){
-		this.PFEntityKey = entity;
+	public PlayerEntity(){}
+
+	public PlayerEntity(EntityKey entity, PlayerInfo playerInfo, string sessionTicket = null){
 		this.sessionTicket = sessionTicket;
-		entityKey = new EntityKey(entity.Id, entity.Type);
+		entityKey = entity;
 		name = playerInfo.PlayerName;
 	}
 	public PlayerEntity(Member member){
@@ -36,22 +35,6 @@ public class PlayerEntity {
 			{PLAYER_NAME_KEY, name},
 		});
 	}
-	// public PlayerEntity(PFEntityKey entity){
-	// 	this.PFEntityKey = entity;
-	// 	var getRequest = new GetObjectsRequest {Entity = new PlayFab.DataModels.EntityKey { Id = entity.Id, Type = entity.Type }};
-	// 	PlayFabDataAPI.GetObjects(getRequest,
-	// 		result => {
-	// 			var playerInfo = result.Objects["PlayerData"]?.DataObject as PlayerInfo;
-	// 			if (playerInfo != null){
-	// 				name = playerInfo.PlayerName;
-	// 			}
-	// 		},
-	// 		error => {
-	// 			Debug.LogError(error);
-	// 			name = "(Error)";
-	// 		}
-	// 	);
-	// }
 }
 
 [Serializable]
@@ -60,9 +43,3 @@ public class PlayerInfo {
 	public SetObject ToSetObject() => new SetObject { ObjectName = "PlayerData", DataObject = this };
 }
 
-[Serializable]
-public class AuthenticationInfo {
-	public string PlayerName;
-	public string EntityId;
-	public string SessionTicket;
-}

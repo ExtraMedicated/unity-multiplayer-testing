@@ -11,8 +11,9 @@ public class PlayerListItem : MonoBehaviour {
 	[SerializeField] TMP_Text ownerBadge;
 	[SerializeField] Button kickButton;
 	[SerializeField] Button readyButton;
-	public PlayerEntity Player { get; private set; }
+	// public PlayerEntity Player { get; private set; }
 	ExtNetworkRoomManager networkRoomManager;
+	public ExtNetworkRoomPlayer networkRoomPlayer;
 	UIText readyButtonText;
 	public JoinedLobbyUI lobbyUI;
 
@@ -39,39 +40,56 @@ public class PlayerListItem : MonoBehaviour {
 		#endif
 	}
 
+	void OnDisable(){
+		if (lobbyUI.playerReadyStates.ContainsKey(networkRoomPlayer.netId)){
+			lobbyUI.playerReadyStates.Remove(networkRoomPlayer.netId);
+		}
+	}
+
 	void KickMe(){
 		if (!isOwner && PlayerEntity.LocalPlayer.entityKey.Id == lobbyUI.lobby.lobbyOwnerId){
 			Debug.Log("TODO: Add confirmation prompt.");
-			LobbyUtility.RemoveMemberFromLobby(lobbyUI.lobby.id, Player.entityKey, e => Debug.LogError(e));
+			LobbyUtility.RemoveMemberFromLobby(lobbyUI.lobby.id, networkRoomPlayer.playerEntity.entityKey, e => Debug.LogError(e));
 		}
 	}
 
 	public void ToggleReadyStatus(){
-		isReady = !isReady;
-		NetworkClient.localPlayer.GetComponent<ExtNetworkRoomPlayer>().CmdChangeReadyState(isReady);
-
-		// Server gets this message and broadcasts it to all clients to update the UI.
-		// TODO: I think I should be able to use what's already in the networkRoomManager instead of all this.
-		NetworkingMessages.SendChangeReadyStateMessage(Player.entityKey.Id, isReady);
+		networkRoomPlayer.CmdChangeReadyState(!isReady);
 	}
 
 	public void SetReady(bool ready){
+		isReady = ready;
 		readyButtonText.SetText(
 			ready ? "Ready!" : "Not Ready",
 			ready ? Color.green : Color.red
 		);
+		if (!lobbyUI.playerReadyStates.ContainsKey(networkRoomPlayer.netId)){
+			lobbyUI.playerReadyStates.Add(networkRoomPlayer.netId, isReady);
+		} else {
+			lobbyUI.playerReadyStates[networkRoomPlayer.netId] = isReady;
+		}
+		lobbyUI.CheckReady();
 	}
 
-	public void SetPlayer(PlayerEntity player){
-		Debug.Log(" ---------------------------- SetPlayer: " + string.Join(',', networkRoomManager.roomSlots.Select(p => p.name)));
-		Debug.Log(networkRoomManager.roomSlots.Count);
-		this.Player = player;
-		playerName.text = player.name;
-		isOwner = player.entityKey.Id == lobbyUI.lobby.lobbyOwnerId;
+	public void RefreshLobbyOwner(){
+		isOwner = networkRoomPlayer.playerEntity.entityKey.Id == lobbyUI.lobby.lobbyOwnerId;
+		LobbyUtility.CurrentlyJoinedLobby = new BasicLobbyInfo {
+			lobbyId = lobbyUI.lobby.id,
+			lobbyOwnerId = lobbyUI.lobby.lobbyOwnerId,
+		};
 		ownerBadge.gameObject.SetActive(isOwner);
 		enableKickButton = !isOwner && PlayerEntity.LocalPlayer.entityKey.Id == lobbyUI.lobby.lobbyOwnerId;
-		readyButton.interactable = player.entityKey.Id == PlayerEntity.LocalPlayer.entityKey.Id;
-		SetReady(networkRoomManager.roomSlots.Find(p => (p as ExtNetworkRoomPlayer).entityId == player.entityKey.Id)?.readyToBegin ?? false);
+		readyButton.interactable = networkRoomPlayer.playerEntity.entityKey.Id == PlayerEntity.LocalPlayer.entityKey.Id;
+	}
+
+	public void SetPlayer(ExtNetworkRoomPlayer player){
+		Debug.Log(" ---------------------------- SetPlayer: " + string.Join(',', networkRoomManager.roomSlots.Select(p => p.name)));
+		Debug.Log(networkRoomManager.roomSlots.Count);
+		networkRoomPlayer = player;
+		Debug.Log("networkRoomPlayer " + networkRoomPlayer);
+		playerName.text = player.playerEntity.name;
+		RefreshLobbyOwner();
+		SetReady(networkRoomPlayer.readyToBegin);
 	}
 
 	public void OnPointerEnter(){
@@ -84,5 +102,12 @@ public class PlayerListItem : MonoBehaviour {
 		#if !(UNITY_IOS || UNITY_ANDROID || UNITY_WP8 || UNITY_IPHONE)
 		kickButton.gameObject.SetActive(false);
 		#endif
+	}
+
+	// TODO: I kinda hate this. Shouldn't I be able to fire an event handler to do this?
+	public void Update(){
+		if (networkRoomPlayer != null && networkRoomPlayer.readyToBegin != isReady){
+			SetReady(networkRoomPlayer.readyToBegin);
+		}
 	}
 }

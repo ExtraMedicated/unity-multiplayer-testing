@@ -112,7 +112,9 @@ public class Player : NetworkBehaviour
 			return;
 
 		if (hasAuthority && Input.GetKeyDown(KeyCode.Escape)){
-			if (PlayerEntity.LocalPlayer.lobbyInfo.lobbyOwnerId == PlayerEntity.LocalPlayer.entityKey.Id){
+			Debug.Log($"LobbyUtility.CurrentlyJoinedLobby.lobbyOwnerId {LobbyUtility.CurrentlyJoinedLobby.lobbyOwnerId }");
+			Debug.Log($"PlayerEntity.LocalPlayer.entityKey.Id {PlayerEntity.LocalPlayer.entityKey.Id }");
+			if (LobbyUtility.CurrentlyJoinedLobby.lobbyOwnerId == PlayerEntity.LocalPlayer.entityKey.Id){
 				LetsAllGoToTheLobby();
 			}
 			// ExtNetworkRoomPlayer.localPlayer?.QuitGame();
@@ -124,7 +126,7 @@ public class Player : NetworkBehaviour
 
 			// if (!string.IsNullOrEmpty(ExtNetworkRoomPlayer.localPlayer?.matchId)){
 			// 	Debug.Log("Send StopGameMessage");
-			// 	NetworkClient.Send(new StopGameMessage(ExtNetworkRoomPlayer.localPlayer.matchId, ExtNetworkRoomPlayer.localPlayer.netId));
+				//NetworkingMessages.SendStopGameMessage();
 			// } else if (NetworkClient.isHostClient) {
 			//	networkManager.StopHost();
 			// }

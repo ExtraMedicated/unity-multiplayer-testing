@@ -1,6 +1,11 @@
 Fix returning to room scene. Sending message without handler?
 	Regardless, it's probably worth scrapping much of the custom ExtNetworkRoomManager stuff and trying the defaults again.
 
+Need to fix error message when conection fails.
+
+Listen for lobby changes?
+
+Find a better way to refresh the player list and statuses.
 
 Need to update lobby status and visibility.
 	Also remember to do something when the round is over.
@@ -14,19 +19,57 @@ What is the proper way to quit a game?
 Chat! Voice and text
 
 
+Reminder: NetworkClient has public static localPlayer.
 
+-------------------------
 
-
-
-(OUTDATED)
 ExtNetworkRoomPlayer is the class that represents a connected player.
-A Match has a list of ExtNetworkRoomPlayers.
-MatchManager handles the logic for creating matches and adding/removing players, and it holds a list of matches which is synced to all clients.
-In the room scene, LobbyUtility works with the MatchManager to control the UI and send messages to the server to create, find, join, and leave matches.
 
-The client sends a BeginGameMessage with the match ID to the server, then the MatchManager finds the match and tells each of the ExtNetworkRoomPlayers in that match to call their StartGame function on the client.
+LobbiesUI.JoinedLobby(Lobby) called when PlayFab API call succeeds.
+	Sets PlayerEntity.LocalPlayer.lobbyInfo.
+	Gets the server connection info and then networkManager.StartClient() is called.
+		This triggers the authentication flow (via NetworkManager.OnClientConnectInternal()).
+			Calls NewNetworkAuthenticator.OnClientAuthenticate()
+				Invokes LobbiesUI.AuthenticateClient() which sends the AuthRequestMessage.
+		LobbiesUI.OnAuthResponse() sets the NetworkClient.connection.authenticationData values.
+		NewNetworkAuthenticator.OnAuthResponseMessage():
+			calls ServerAccept()
+				which invokes NetworkManager.OnServerAuthenticated()
+					which sends the SceneMessage to the client.
+			calls ClientAccept()
+				which invokes NetworkManager.OnClientAuthenticated()
+					which calls NetworkRoomManager.OnClientConnect()
+						then NetworkRoomManager.OnRoomClientConnect()
+						and NetworkManager.OnClientConnect()
+							which calls NetworkClient.Ready()
+							and NetworkClient.AddPlayer()
+								AddPlayer() sends the AddPlayerMessage to the server.
 
-When game player is added, ReplacePlayerForConnection is called to give control to the game player.
-When ending the game or disconnecting, it's called again to give control back to the room player.
+NetworkManager handles the SceneMessage with OnClientSceneInternal()
+	which calls ClientChangeScene()
+
+NetworkManager handles the AddPlayerMessage with OnServerAddPlayerInternal()
+	which calls ExtNetworkRoomManager.OnServerAddPlayer()
+		base.OnServerAddPlayer() calls ExtNetworkRoomManager.OnRoomServerCreateRoomPlayer() to actually instantiate the room player.
+		and NetworkServer.AddPlayerForConnection().
+	ExtNetworkRoomManager.OnServerAddPlayer() invokes OnPlayerAdded.
+
+NetworkServer.AddPlayerForConnection():
+	sets the connection identity
+	sets NetworkClient.localPlayer
+	calls SetClientReady()
+	calls Respawn()
+
+--------------
+
+JoinedLobbyUI.StartGame() sends the BeginGameMessage to the server
+	which triggers OnStartGameMessage()
+		which calls NetworkRoomManager.ServerChangeScene()
+			which calls NetworkServer.ReplacePlayerForConnection() with the roomPlayer
+			and ServerChangeScene()
+				which sends the SceneMessage to the clients.
+
+
+
 
 ----------------------------------

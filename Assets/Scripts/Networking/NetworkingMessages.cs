@@ -19,23 +19,23 @@ public static class NetworkingMessages
 	static void Log(string caller, string msgType){
 		Debug.Log(string.Format(DEBUG_LINE, msgType, caller));
 	}
-	static void SendFromClient<T>(T msg, [CallerMemberName] string caller = "") where T : struct, NetworkMessage {
+	static void SendFromClient<T>(T msg, int channelId = Channels.Reliable, [CallerMemberName] string caller = "") where T : struct, NetworkMessage {
 		Log(caller, msg.GetType().Name);
-		NetworkClient.Send(msg);
+		NetworkClient.Send(msg, channelId);
 	}
-	static void SendFromServerToAll<T>(T msg, [CallerMemberName] string caller = "") where T : struct, NetworkMessage {
+	static void SendFromServerToAll<T>(T msg, int channelId = Channels.Reliable, [CallerMemberName] string caller = "") where T : struct, NetworkMessage {
 		Log(caller, msg.GetType().Name);
-		NetworkServer.SendToAll(msg);
+		NetworkServer.SendToAll(msg, channelId);
 	}
 	public static void SendThroughConnection<T>(NetworkConnection conn, T msg, [CallerMemberName] string caller = "") where T : struct, NetworkMessage {
 		Log(caller, msg.GetType().Name);
 		conn.Send(msg);
 	}
 #else
-	static void SendFromClient<T>(T msg) where T : struct, NetworkMessage {
+	static void SendFromClient<T>(T msg, int channelId = Channels.Reliable) where T : struct, NetworkMessage {
 		NetworkClient.Send(msg);
 	}
-	static void SendFromServerToAll<T>(T msg) where T : struct, NetworkMessage {
+	static void SendFromServerToAll<T>(T msg, int channelId = Channels.Reliable) where T : struct, NetworkMessage {
 		NetworkServer.SendToAll(msg);
 	}
 	public static void SendThroughConnection<T>(NetworkConnection conn, T msg) where T : struct, NetworkMessage {
@@ -45,22 +45,20 @@ public static class NetworkingMessages
 
 	public static void SendAuthRequestMessage(){
 		SendFromClient(new AuthRequestMessage {
-			username = PlayerEntity.LocalPlayer.name,
-			entityId = PlayerEntity.LocalPlayer.entityKey.Id,
-			sessionTicket = PlayerEntity.LocalPlayer.sessionTicket,
+			playerEntity = PlayerEntity.LocalPlayer,
 		});
 	}
 
-	public static void SendChangeReadyStateMessage(string entityId, bool isReady){
-		SendFromClient(new ChangeReadyStateMessage {
-			entityId = entityId,
-			ready = isReady,
-		});
-	}
+	// public static void SendChangeReadyStateMessage(string entityId, bool isReady){
+	// 	SendFromClient(new ChangeReadyStateMessage {
+	// 		entityId = entityId,
+	// 		ready = isReady,
+	// 	});
+	// }
 
-	public static void SendChangeAllPlayersReadyStateMessage(bool isReady){
-		SendFromServerToAll(new ChangeAllPlayersReadyStateMessage { ready = true});
-	}
+	// public static void SendChangeAllPlayersReadyStateMessage(bool isReady){
+	// 	SendFromServerToAll(new ChangeAllPlayersReadyStateMessage { ready = isReady});
+	// }
 
 	public static void SendBeginGameMessage(){
 		SendFromClient(new BeginGameMessage());
@@ -73,6 +71,10 @@ public static class NetworkingMessages
 	public static void SendShutdownMessage(){
 		SendFromServerToAll(new ShutdownMessage());
 	}
+
+	// public static void SendStopGameMessage(){
+	// 	SendFromClient(new StopGameMessage(ExtNetworkRoomPlayer.localPlayer.matchId, ExtNetworkRoomPlayer.localPlayer.netId));
+	// }
 }
 
 public struct ReceiveAuthenticateMessage : NetworkMessage
@@ -88,24 +90,13 @@ public struct MaintenanceMessage : NetworkMessage
 }
 
 public struct AuthRequestMessage : NetworkMessage {
-	public string username;
-	public string entityId;
-	public string sessionTicket;
+	public PlayerEntity playerEntity;
 
 }
 
-public struct ChangeReadyStateMessage : NetworkMessage {
-	public string entityId;
-	public bool ready;
-}
-public struct ChangeAllPlayersReadyStateMessage : NetworkMessage {
-	public bool ready;
-}
 
 public struct AuthResponseMessage : NetworkMessage {
-	public string username;
-	public string sessionTicket;
-	public string entityId;
+	public PlayerEntity playerEntity;
 }
 
 public struct AuthErrorMessage : NetworkMessage {
@@ -155,11 +146,3 @@ public struct CreateGamePlayerMessage : NetworkMessage {
 
 public struct BeginGameMessage : NetworkMessage {}
 
-public struct StopGameMessage : NetworkMessage {
-	public string matchId;
-	public uint netId;
-	public StopGameMessage(string matchId, uint netId){
-		this.matchId = matchId;
-		this.netId = netId;
-	}
-}

@@ -197,7 +197,6 @@ public class LobbiesUI : MonoBehaviour
 		// statusMessage.text = "Joining match...";
 		DisplayMessage("Joining Lobby...");
 		SetLobbyListEnabled(false);
-		// NetworkClient.Send(new AddPlayerToMatchRequest { lobbyId = matchId });
 		PlayFabMultiplayer.JoinLobby(
 			PlayerEntity.LocalPlayer.entityKey,
 			connectionString,
@@ -255,20 +254,11 @@ public class LobbiesUI : MonoBehaviour
 				e => OnError(e.ErrorMessage)
 			);
 		}
-
-		// MatchManager.instance.AddPlayerToMatch(ExtNetworkRoomPlayer.localPlayer, lobby.Id);
-		// NetworkClient.Send(new AddPlayerToMatchRequest {lobbyId = lobby.Id});
-		// mainLobbiesUI.SetActive(false);
-		// joinedLobbyUI.LoadLobby(lobby.Id);
-		// joinedLobbyUI.gameObject.SetActive(true);
 	}
 
 	private void OnRequestedServerResponse(PlayFab.MultiplayerModels.RequestMultiplayerServerResponse response)
 	{
 		ExtDebug.LogJson("OnRequestedServerResponse: ", response);
-		// var networkManager = FindObjectOfType<NetworkManager>();
-		// var transport = networkManager.GetComponent<TransportWrapper>();
-		// transport.SetServerBindAddress(response.IPV4Address, FishNet.Transporting.IPAddressType.IPv4);
 		networkManager.networkAddress = response.IPV4Address;
 		transportWrapper.SetPort((ushort)response.Ports[0].Num);
 		networkManager.StartClient();

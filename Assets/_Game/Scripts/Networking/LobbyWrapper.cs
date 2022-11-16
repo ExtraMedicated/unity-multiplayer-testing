@@ -9,12 +9,12 @@ public class LobbyWrapper
 {
 	public const string LOBBY_NAME_KEY = "LobbyName";
 	public Lobby _lobby;
-	public string id;// => _lobby.Id;
+	public string id;
 	public string LobbyName => _lobby?.LobbyData?.GetValueOrDefault(LOBBY_NAME_KEY) ?? "Untitled";
 	public string levelName;
-	public string connectionString;// => _lobby.ConnectionString;
+	public string connectionString;
 	public uint currentMembers;
-	public uint maxMembers;// => _lobby.MaxMemberCount;
+	public uint maxMembers;
 	public bool isPublic;
 	public bool isInProgress;
 	public string lobbyOwnerId;

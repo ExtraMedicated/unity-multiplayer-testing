@@ -39,24 +39,11 @@ public class Player : NetworkBehaviour
 
 	void Awake()
 	{
-		// base.Awake();
 		_rigidbody = GetComponent<Rigidbody>();
 		centerX = Screen.width/2;
 		centerY = Screen.height/2;
 		networkManager = FindObjectOfType<ExtNetworkRoomManager>();
-
-		// if (isServer){
-		// 	playerId = GetInstanceID();
-		// 	PlayerManager.AddPlayer(this);
-		// }
 	}
-
-	// void OnValidate()
-	// {
-	// 	// GetComponent<Rigidbody>().isKinematic = false;
-	// 	// GetComponent<NetworkTransform>().clientAuthority = true;
-	// }
-
 
 	public override void OnStartAuthority()
 	{
@@ -117,19 +104,6 @@ public class Player : NetworkBehaviour
 			if (LobbyUtility.CurrentlyJoinedLobby.lobbyOwnerId == PlayerEntity.LocalPlayer.entityKey.Id){
 				LetsAllGoToTheLobby();
 			}
-			// ExtNetworkRoomPlayer.localPlayer?.QuitGame();
-			// if (networkRoomPlayer != null){
-			// 	networkRoomPlayer.QuitGame();
-			// // } else if (NetworkClient.isHostClient) {
-			// // 	networkManager.StopHost();
-			// }
-
-			// if (!string.IsNullOrEmpty(ExtNetworkRoomPlayer.localPlayer?.matchId)){
-			// 	Debug.Log("Send StopGameMessage");
-				//NetworkingMessages.SendStopGameMessage();
-			// } else if (NetworkClient.isHostClient) {
-			//	networkManager.StopHost();
-			// }
 			return;
 		}
 
@@ -140,18 +114,6 @@ public class Player : NetworkBehaviour
 	void LetsAllGoToTheLobby(){
 		networkManager.ServerChangeScene(networkManager.RoomScene);
 	}
-
-	// public void TriggerStopGameFromServer(){
-	// 	Debug.Log("TriggerStopGameFromServer");
-	// 	TargetStopGame();
-	// 	// Destroy after a delay. I don't know if the delay is needed, but I have a feeling that destroying this immediately could prevent the RPC from working.
-	// 	Destroy(gameObject, 1);
-	// }
-
-	// [TargetRpc]
-	// void TargetStopGame(){
-	// 	ExtNetworkRoomPlayer.localPlayer.StopGame();
-	// }
 
 	void HandleInput(){
 		if (inputChanged){

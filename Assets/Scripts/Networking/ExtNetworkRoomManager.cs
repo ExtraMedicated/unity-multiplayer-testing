@@ -79,11 +79,8 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 		var gPlayer = gamePlayer.GetComponent<Player>();
 
 		gPlayer.name = rPlayer.playerEntity.name;
-		// rPlayer.gamePlayer = gPlayer;
+		// rPlayer.gamePlayer = gPlayer; // I think this line caused an error. I forget what it was.
 		gPlayer.networkRoomPlayer = rPlayer;
-
-		// Don't think this needs to be called here if it also gets called in OnServerAddPlayer.
-		// OnPlayerAdded?.Invoke(rPlayer.entityId);
 		return true;
 	}
 

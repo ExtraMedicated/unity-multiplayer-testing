@@ -11,7 +11,6 @@ public class PlayerListItem : MonoBehaviour {
 	[SerializeField] TMP_Text ownerBadge;
 	[SerializeField] Button kickButton;
 	[SerializeField] Button readyButton;
-	// public PlayerEntity Player { get; private set; }
 	ExtNetworkRoomManager networkRoomManager;
 	public ExtNetworkRoomPlayer networkRoomPlayer;
 	UIText readyButtonText;

@@ -43,7 +43,6 @@ public class NewNetworkAuthenticator : NetworkAuthenticator
 	public override void OnServerAuthenticate(NetworkConnectionToClient conn)
 	{
 		// Debug.Log("NewNetworkAuthenticator OnServerAuthenticate");
-
 	}
 
 	/// <summary>

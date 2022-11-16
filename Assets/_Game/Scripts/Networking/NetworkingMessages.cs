@@ -61,7 +61,9 @@ public static class NetworkingMessages
 	// }
 
 	public static void SendBeginGameMessage(){
-		SendFromClient(new BeginGameMessage());
+		SendFromClient(new BeginGameMessage {
+			scene = LobbyUtility.CurrentlyJoinedLobby.scene
+		});
 	}
 
 	public static void SendMaintenanceMessage(DateTime nextScheduledMaintenanceUtc){
@@ -144,5 +146,7 @@ public struct CreateGamePlayerMessage : NetworkMessage {
 // 	public List<Match> matches;
 // }
 
-public struct BeginGameMessage : NetworkMessage {}
+public struct BeginGameMessage : NetworkMessage {
+	public string scene;
+}
 

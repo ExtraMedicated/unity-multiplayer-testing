@@ -12,15 +12,12 @@ EditorBuildSettings:
     path: Assets/_Game/Scenes/Lobby.unity
     guid: 4e7b9913231f0fa4d8b8a13abb21f51a
   - enabled: 1
-    path: Assets/_Game/Scenes/SampleScene.unity
-    guid: 9defe8cbfd98f034895331cdf5c9f4fa
+    path: Assets/_Game/Scenes/Levels/_1-intro.unity
+    guid: 937c1539f419484419cf632051f97b9a
   - enabled: 1
-    path: Assets/Mirror/Examples/Room/Scenes/OfflineScene.unity
-    guid: 9e6f14982412b2545a0911ebaaa46a23
+    path: Assets/_Game/Scenes/Levels/Level1.unity
+    guid: aedcd13634b6b0b43adf6438bc265172
   - enabled: 1
-    path: Assets/Mirror/Examples/Room/Scenes/OnlineScene.unity
-    guid: d7a6763559b31854586c9e49916273ef
-  - enabled: 1
-    path: Assets/Mirror/Examples/Room/Scenes/RoomScene.unity
-    guid: 48478f4d522f96945b8396f376299d3a
+    path: Assets/_Game/Scenes/Levels/Level2.unity
+    guid: 5e05ffaa3f7a5aa40b17413aa3bf4f9d
   m_configObjects: {}

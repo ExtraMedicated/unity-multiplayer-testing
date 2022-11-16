@@ -56,7 +56,8 @@ public class LobbyUtility : MonoBehaviour {
 	}
 
 	public static bool FindLobbies(){
-		if ((DateTime.Now - timeOfLastSearch).TotalSeconds > MIN_POLLING_FREQUENCY){
+
+		if ((DateTime.Now - timeOfLastSearch).TotalSeconds > MIN_POLLING_FREQUENCY && PlayerEntity.LocalPlayer != null){
 			Debug.Log("------------- FindLobbies --------------");
 			LobbySearchConfiguration lobbySearchConfig = new LobbySearchConfiguration();
 			PlayFabMultiplayer.FindLobbies(PlayerEntity.LocalPlayer.entityKey, lobbySearchConfig);
@@ -111,7 +112,7 @@ public class LobbyUtility : MonoBehaviour {
 		Debug.Log("OnLeaveLobby");
 	}
 
-	public static void CreateLobby(string name, uint maxPlayers, bool isPublic){
+	public static void CreateLobby(string name, string level, uint maxPlayers, bool isPublic){
 		var createConfig = new LobbyCreateConfiguration()
 		{
 			MaxMemberCount = maxPlayers,
@@ -120,6 +121,7 @@ public class LobbyUtility : MonoBehaviour {
 		};
 
 		createConfig.LobbyProperties[LobbyWrapper.LOBBY_NAME_KEY] = name;
+		createConfig.LobbyProperties[LobbyWrapper.LOBBY_LEVEL_KEY] = level;
 		// createConfig.LobbyProperties["Prop2"] = "Value2";
 
 		var joinConfig = new LobbyJoinConfiguration();

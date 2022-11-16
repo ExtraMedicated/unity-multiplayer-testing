@@ -75,6 +75,7 @@ public class PlayerListItem : MonoBehaviour {
 		LobbyUtility.CurrentlyJoinedLobby = new BasicLobbyInfo {
 			lobbyId = lobbyUI.lobby.id,
 			lobbyOwnerId = lobbyUI.lobby.lobbyOwnerId,
+			scene = lobbyUI.lobby.levelName,
 		};
 		ownerBadge.gameObject.SetActive(isOwner);
 		enableKickButton = !isOwner && PlayerEntity.LocalPlayer.entityKey.Id == lobbyUI.lobby.lobbyOwnerId;

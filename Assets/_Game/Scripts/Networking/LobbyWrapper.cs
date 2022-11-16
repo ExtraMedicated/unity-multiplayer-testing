@@ -8,10 +8,11 @@ using UnityEngine;
 public class LobbyWrapper
 {
 	public const string LOBBY_NAME_KEY = "LobbyName";
+	public const string LOBBY_LEVEL_KEY = "LevelScene";
 	public Lobby _lobby;
 	public string id;
 	public string LobbyName => _lobby?.LobbyData?.GetValueOrDefault(LOBBY_NAME_KEY) ?? "Untitled";
-	public string levelName;
+	public string levelName => _lobby?.LobbyData?.GetValueOrDefault(LOBBY_LEVEL_KEY) ?? "_Game/Scenes/Levels/Level1.unity";
 	public string connectionString;
 	public uint currentMembers;
 	public uint maxMembers;
@@ -37,4 +38,5 @@ public class LobbyWrapper
 public class BasicLobbyInfo {
 	public string lobbyId;
 	public string lobbyOwnerId;
+	public string scene;
 }

@@ -86,6 +86,7 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 
 	private void OnStartGameMessage(NetworkConnectionToClient conn, BeginGameMessage msg)
 	{
+		GameplayScene = msg.scene;
 		ServerChangeScene(GameplayScene);
 	}
 

@@ -1,6 +1,3 @@
-Fix returning to room scene. Sending message without handler?
-	Regardless, it's probably worth scrapping much of the custom ExtNetworkRoomManager stuff and trying the defaults again.
-
 Need to fix error message when conection fails.
 
 Listen for lobby changes?

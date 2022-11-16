@@ -119,7 +119,7 @@ public class LobbiesUI : MonoBehaviour
 	public void OnClickCreate(){
 		DisplayMessage("Creating Lobby...");
 
-		LobbyUtility.CreateLobby("Test", 5, true); // TODO: Make a menu to configure this stuff.
+		// LobbyUtility.CreateLobby("Test", 5, true); // TODO: Make a menu to configure this stuff.
 	}
 
 	private void OnLobbyCreateAndJoinCompleted(Lobby lobby)
@@ -231,6 +231,7 @@ public class LobbiesUI : MonoBehaviour
 			LobbyUtility.CurrentlyJoinedLobby = new BasicLobbyInfo {
 				lobbyId = lobby.Id,
 				lobbyOwnerId = owner.Id,
+				scene = lobby.GetLobbyProperties()[LobbyWrapper.LOBBY_LEVEL_KEY]
 			};
 		}
 

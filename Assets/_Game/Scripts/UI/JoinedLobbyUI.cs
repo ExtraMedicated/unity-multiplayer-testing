@@ -11,7 +11,7 @@ public class JoinedLobbyUI : MonoBehaviour {
 	public LobbyWrapper lobby = new LobbyWrapper();
 
 	[SerializeField] TMP_Text lobbyText;
-	// [SerializeField] TMP_Text levelNameText;
+	[SerializeField] TMP_Text levelNameText;
 	[SerializeField] Transform playerListPanel;
 	[SerializeField] Button leaveLobbyBtn;
 	[SerializeField] Button startGameBtn;
@@ -96,7 +96,7 @@ public class JoinedLobbyUI : MonoBehaviour {
 
 	void RefreshUI(){
 		lobbyText.text = $"{(lobby.isPublic ? "":"Private ")}Lobby {lobby.LobbyName}";
-		// levelNameText.text = $"Level: {lobby.levelName}";
+		levelNameText.text = $"Level: {lobby.levelName}";
 		startGameBtn.gameObject.SetActive(networkManager.allPlayersReady && PlayerEntity.LocalPlayer.entityKey.Id == lobby.lobbyOwnerId);
 		RefreshPlayerList();
 	}

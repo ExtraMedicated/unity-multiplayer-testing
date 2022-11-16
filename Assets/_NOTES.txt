@@ -1,3 +1,7 @@
+Could maybe schedule the call to FindLobbies within the utility so that it can happen right away on load if it hasn't been scheduled for a moment later by leaving the lobby.
+
+Matchmaking seems broken. Not sure I want it anyway.
+
 Need to fix error message when conection fails.
 
 Listen for lobby changes?
@@ -11,12 +15,12 @@ Need to be able to find private lobby.
 
 PlayFab lobby invitations?
 
-What is the proper way to quit a game?
-
 Chat! Voice and text
 
 
 Reminder: NetworkClient has public static localPlayer.
+
+Should the build ID be fetched using a PlayFab API instead of in the config?
 
 -------------------------
 

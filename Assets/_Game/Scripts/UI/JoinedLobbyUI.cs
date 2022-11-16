@@ -6,6 +6,7 @@ using TMPro;
 using UnityEngine.UI;
 using Mirror;
 using System.Linq;
+using UnityEngine.SceneManagement;
 
 public class JoinedLobbyUI : MonoBehaviour {
 	public LobbyWrapper lobby = new LobbyWrapper();
@@ -162,7 +163,7 @@ public class JoinedLobbyUI : MonoBehaviour {
 		Debug.Log($"{PlayerEntity.LocalPlayer?.name} LeftLobby {lobbyId}");
 		// DisplayMessage($"{PlayerEntity.LocalPlayer?.name} LeftLobby {lobbyId}");
 		LobbyUtility.CurrentlyJoinedLobby = null;
-		NetworkClient.Disconnect();
+		networkManager.StopClient();
 	}
 	#endregion
 

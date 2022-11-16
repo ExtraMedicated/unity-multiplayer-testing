@@ -8,7 +8,7 @@ using System.IO.Compression;
 using UnityEditor;
 using UnityEngine;
 
-// From: https://www.youtube.com/watch?v=RIvEJ2LP0W0
+// See: https://www.youtube.com/watch?v=RIvEJ2LP0W0
 public class BuildScript
 {
 	const string SERVER_DEFINES = "MIRROR;MIRROR_17_0_OR_NEWER;MIRROR_18_0_OR_NEWER;MIRROR_24_0_OR_NEWER;MIRROR_26_0_OR_NEWER;MIRROR_27_0_OR_NEWER;MIRROR_28_0_OR_NEWER;MIRROR_29_0_OR_NEWER;MIRROR_30_0_OR_NEWER;MIRROR_30_5_2_OR_NEWER;MIRROR_32_1_2_OR_NEWER;MIRROR_32_1_4_OR_NEWER;MIRROR_35_0_OR_NEWER;MIRROR_35_1_OR_NEWER;MIRROR_37_0_OR_NEWER;MIRROR_38_0_OR_NEWER;MIRROR_39_0_OR_NEWER;MIRROR_40_0_OR_NEWER;MIRROR_41_0_OR_NEWER;MIRROR_42_0_OR_NEWER;MIRROR_43_0_OR_NEWER;MIRROR_44_0_OR_NEWER;MIRROR_46_0_OR_NEWER;MIRROR_47_0_OR_NEWER;MIRROR_53_0_OR_NEWER;MIRROR_55_0_OR_NEWER;MIRROR_57_0_OR_NEWER;MIRROR_58_0_OR_NEWER;MIRROR_65_0_OR_NEWER;MIRROR_66_0_OR_NEWER;ENABLE_PLAYFABSERVER_API";
@@ -17,12 +17,11 @@ public class BuildScript
 	const string COPY_SERVER_TO_PATH = "C:/tmp/Build";
 
 	static string[] scenes = new[] {
-		// "Assets/Scenes/Offline.unity",
-		// "Assets/Scenes/Room.unity",
-		// "Assets/Scenes/Game.unity",
 		"Assets/_Game/Scenes/MainMenu.unity",
 		"Assets/_Game/Scenes/Lobby.unity",
-		"Assets/_Game/Scenes/SampleScene.unity",
+		"Assets/_Game/Scenes/Levels/Level1.unity",
+		"Assets/_Game/Scenes/Levels/Level2.unity",
+		"Assets/_Game/Scenes/Levels/Level3.unity",
 	};
 
 	[MenuItem("Build/Build All")]

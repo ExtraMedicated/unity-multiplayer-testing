@@ -59,6 +59,7 @@ public class LobbyUtility : MonoBehaviour {
 
 		if ((DateTime.Now - timeOfLastSearch).TotalSeconds > MIN_POLLING_FREQUENCY && PlayerEntity.LocalPlayer != null){
 			Debug.Log("------------- FindLobbies --------------");
+			OnScreenMessage.SetText("Finding Lobbies...");
 			LobbySearchConfiguration lobbySearchConfig = new LobbySearchConfiguration();
 			PlayFabMultiplayer.FindLobbies(PlayerEntity.LocalPlayer.entityKey, lobbySearchConfig);
 			timeOfLastSearch = DateTime.Now;
@@ -122,11 +123,16 @@ public class LobbyUtility : MonoBehaviour {
 
 		createConfig.LobbyProperties[LobbyWrapper.LOBBY_NAME_KEY] = name;
 		createConfig.LobbyProperties[LobbyWrapper.LOBBY_LEVEL_KEY] = level;
+		createConfig.LobbyProperties[LobbyWrapper.LOBBY_SESSION_KEY] = Guid.NewGuid().ToString();
+
+
 		// createConfig.LobbyProperties["Prop2"] = "Value2";
 
 		var joinConfig = new LobbyJoinConfiguration();
 		joinConfig.MemberProperties[PlayerEntity.PLAYER_NAME_KEY] = PlayerEntity.LocalPlayer.name;
 		// joinConfig.MemberProperties["MemberProp2"] = "MemberValue2";
+
+		OnScreenMessage.SetText("Creating Lobby...");
 
 		PlayFabMultiplayer.CreateAndJoinLobby(
 			PlayerEntity.LocalPlayer.entityKey,

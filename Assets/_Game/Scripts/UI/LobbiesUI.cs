@@ -15,7 +15,6 @@ public class LobbiesUI : MonoBehaviour
 	[SerializeField] Transform lobbyListPanel;
 	[SerializeField] GameObject lobbyListItemPrefab;
 	// [SerializeField] JoinedLobbyUI joinedLobbyUI;
-	[SerializeField] UIText statusMessage;
 	[SerializeField] MatchmakingUI matchmakingUI;
 	[SerializeField] MultiplayerMenu multiplayerMenu;
 
@@ -27,7 +26,7 @@ public class LobbiesUI : MonoBehaviour
 	bool fetchingMatches;
 
 	void OnEnable(){
-		statusMessage.text = string.Empty;
+		OnScreenMessage.SetText(string.Empty);
 		// Make sure authenticator is set up for multiplayer.
 		if (networkManager.authenticator == null) {
 			networkManager.authenticator = GameObject.FindObjectOfType<NewNetworkAuthenticator>();
@@ -95,7 +94,7 @@ public class LobbiesUI : MonoBehaviour
 	}
 
 	public void DisplayMessage(string text, string color = ""){
-		statusMessage.SetText(text, color);
+		OnScreenMessage.SetText(text, color);
 	}
 
 	void SetLobbyListEnabled(bool val){
@@ -156,6 +155,7 @@ public class LobbiesUI : MonoBehaviour
 		{
 			// Successfully found lobbies
 			Debug.Log($"Found {searchResults.Count} lobbies");
+			OnScreenMessage.SetText($"Found {searchResults.Count} lobbies");
 			for (int i=lobbyListPanel.childCount-1; i>=0; i--){
 				Destroy(lobbyListPanel.GetChild(i).gameObject);
 			}
@@ -245,20 +245,23 @@ public class LobbiesUI : MonoBehaviour
 				}
 			});
 		} else {
+			Debug.Log("Lobby Session ID: " + lobby.GetLobbyProperties()[LobbyWrapper.LOBBY_SESSION_KEY]);
+			OnScreenMessage.SetText("Requesting Server...");
 			PlayFabMultiplayerAPI.RequestMultiplayerServer(
 				new PlayFab.MultiplayerModels.RequestMultiplayerServerRequest {
 					PreferredRegions = new List<string>() { "EastUs" }, // TODO: This should probably be based on some user setting and depending on whether I run servers in other regions.
-					SessionId = System.Guid.NewGuid().ToString(),
+					SessionId = lobby.GetLobbyProperties()[LobbyWrapper.LOBBY_SESSION_KEY],
 					BuildId = Config.Instance.buildId,
 				},
 				OnRequestedServerResponse,
-				e => OnError(e.ErrorMessage)
+				e => OnError(e.GenerateErrorReport())
 			);
 		}
 	}
 
 	private void OnRequestedServerResponse(PlayFab.MultiplayerModels.RequestMultiplayerServerResponse response)
 	{
+		// TODO: Would I need to make sure the State is "Active" before attempting to connect? Am I supposed to poll for that?
 		ExtDebug.LogJson("OnRequestedServerResponse: ", response);
 		networkManager.networkAddress = response.IPV4Address;
 		transportWrapper.SetPort((ushort)response.Ports[0].Num);
@@ -280,7 +283,7 @@ public class LobbiesUI : MonoBehaviour
 	private void OnError(string error)
 	{
 		Debug.LogError(error);
-		// mainLobbiesUI.DisplayMessage(error, "red");
+		OnScreenMessage.SetText(error, "red");
 	}
 
 }

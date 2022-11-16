@@ -9,6 +9,8 @@ public class LobbyWrapper
 {
 	public const string LOBBY_NAME_KEY = "LobbyName";
 	public const string LOBBY_LEVEL_KEY = "LevelScene";
+	public const string LOBBY_SESSION_KEY = "SessionID";
+
 	public Lobby _lobby;
 	public string id;
 	public string LobbyName => _lobby?.LobbyData?.GetValueOrDefault(LOBBY_NAME_KEY) ?? "Untitled";

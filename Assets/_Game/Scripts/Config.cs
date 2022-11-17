@@ -7,6 +7,7 @@ public class Config : MonoBehaviour {
 	[SerializeField] string defaultPlayerName;
 	public bool addCloneNumber;
 	public string buildId;
+	public string buildAliasId;
 	public bool forceLocalServer;
 	public string localServerIP = "localhost";
 	public uint localServerPort = 7777;

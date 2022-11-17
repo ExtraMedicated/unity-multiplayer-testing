@@ -74,7 +74,7 @@ public class LoginUtility : MonoBehaviour {
 	}
 
 	private void OnPlayFabError(PlayFabError e){
-		ExtDebug.LogJsonError("Login error: ", e.ErrorDetails);
+		ExtDebug.LogJsonError("Login error: ", e.GenerateErrorReport());
 		OnError?.Invoke(e.ErrorMessage);
 	}
 

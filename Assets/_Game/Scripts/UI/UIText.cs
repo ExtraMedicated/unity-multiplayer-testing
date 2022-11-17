@@ -28,11 +28,11 @@ public class UIText : MonoBehaviour
 	}
 
 	public void SetText(string text, Color color){
-		SetText(text, ColorUtility.ToHtmlStringRGB(color));
+		SetText(text, "#"+ColorUtility.ToHtmlStringRGB(color));
 	}
 	public void SetText(string text, string color){
 		if (!string.IsNullOrWhiteSpace(color)){
-			UpdateText($"<color=#{color}>{LocalizedText(text)}</color>");
+			UpdateText($"<color={color}>{LocalizedText(text)}</color>");
 		} else {
 			UpdateText(LocalizedText(text));
 		}

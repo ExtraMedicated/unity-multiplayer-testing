@@ -147,7 +147,7 @@ GameObject:
   - component: {fileID: 1203212981073764252}
   - component: {fileID: 7617771974852762104}
   m_Layer: 0
-  m_Name: ID
+  m_Name: PlayerCount
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -201,7 +201,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Lobby ID
+  m_text: Player Count
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -396,14 +396,13 @@ MonoBehaviour:
       PubSubConnectionHandle: 
       UseConnections: 0
     id: 
-    levelName: 
     connectionString: 
     currentMembers: 0
     maxMembers: 0
     isPublic: 0
     isInProgress: 0
     lobbyOwnerId: 
-  lobbyID: {fileID: 7617771974852762104}
+  playerCount: {fileID: 7617771974852762104}
   lobbyName: {fileID: 357403575319725655}
   inProgress: {fileID: 6346476674733630609}
   levelName: {fileID: 8809816061306501733}

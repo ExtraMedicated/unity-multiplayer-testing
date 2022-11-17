@@ -7,6 +7,14 @@ using UnityEngine;
 [Serializable]
 public class LobbyWrapper
 {
+	public const string LOBBY_NAME_SEARCH_KEY = "string_key1";
+	public const string LOBBY_LEVEL_SEARCH_KEY = "string_key2";
+	public const string LOBBY_VISIBILITY_SEARCH_KEY = "number_key1";
+	public enum LobbyVisibility {
+		Visible = 0,
+		Invisible = 1
+	}
+
 	public const string LOBBY_NAME_KEY = "LobbyName";
 	public const string LOBBY_LEVEL_KEY = "LevelScene";
 	public const string LOBBY_SESSION_KEY = "SessionID";
@@ -21,7 +29,8 @@ public class LobbyWrapper
 	public bool isPublic;
 	public bool isInProgress;
 	public string lobbyOwnerId;
-	public bool IsJoinable() => currentMembers < maxMembers && !isInProgress;
+	public Dictionary<string, string> searchData = new Dictionary<string, string>();
+	public bool IsJoinable() => currentMembers < maxMembers && !(isInProgress || _lobby?.MembershipLock == MembershipLock.Locked);
 	public LobbyWrapper(){}
 	public LobbyWrapper(Lobby lobby){
 		_lobby = lobby;
@@ -31,8 +40,10 @@ public class LobbyWrapper
 		maxMembers = lobby.MaxPlayers;
 		isPublic = lobby.AccessPolicy == AccessPolicy.Public;
 		ExtDebug.LogJson("LobbyWrapper LobbyData: ", lobby.LobbyData);
+		ExtDebug.LogJson("LobbyWrapper SearchData: ", lobby.SearchData);
 		// isInProgress = lobby.isInProgress;
 		lobbyOwnerId = lobby.Owner.Id;
+		searchData = lobby.SearchData;
 	}
 }
 

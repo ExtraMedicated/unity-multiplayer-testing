@@ -33,6 +33,17 @@ public class TransportWrapper : MonoBehaviour {
 		}
 		throw new Exception("SetPort: Unhandled transport type: " + transport.GetType().Name);
 	}
+
+	public int GetTimeoutMS(){
+		if (transport as TelepathyTransport != null){
+			return ((TelepathyTransport)transport).SendTimeout;
+		}
+		if (transport as KcpTransport != null){
+			return ((KcpTransport)transport).Timeout;
+		}
+		throw new Exception("SetPort: Unhandled transport type: " + transport.GetType().Name);
+
+	}
 	// public string GetClientAddress(){
 	// 	if (transport as Tugboat != null){
 	// 		return ((Tugboat)transport).GetClientAddress();

@@ -99,10 +99,15 @@ public class Player : NetworkBehaviour
 			return;
 
 		if (hasAuthority && Input.GetKeyDown(KeyCode.Escape)){
-			Debug.Log($"LobbyUtility.CurrentlyJoinedLobby.lobbyOwnerId {LobbyUtility.CurrentlyJoinedLobby.lobbyOwnerId }");
-			Debug.Log($"PlayerEntity.LocalPlayer.entityKey.Id {PlayerEntity.LocalPlayer.entityKey.Id }");
-			if (LobbyUtility.CurrentlyJoinedLobby.lobbyOwnerId == PlayerEntity.LocalPlayer.entityKey.Id){
-				LetsAllGoToTheLobby();
+			if (networkManager.gameMode == ExtNetworkRoomManager.GameMode.Multiplayer){
+				Debug.Log($"LobbyUtility.CurrentlyJoinedLobby.lobbyOwnerId {LobbyUtility.CurrentlyJoinedLobby.lobbyOwnerId }");
+				Debug.Log($"PlayerEntity.LocalPlayer.entityKey.Id {PlayerEntity.LocalPlayer.entityKey.Id }");
+				if (LobbyUtility.CurrentlyJoinedLobby.lobbyOwnerId == PlayerEntity.LocalPlayer.entityKey.Id){
+					LetsAllGoToTheLobby();
+				}
+			} else {
+				// Stop single player game.
+				networkManager.StopHost();
 			}
 			return;
 		}

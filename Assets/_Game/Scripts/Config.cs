@@ -4,6 +4,7 @@ using System.IO;
 using UnityEngine;
 
 public class Config : MonoBehaviour {
+	public const int MAX_MULTIPLAYER_CONNECTIONS = 32;
 	[SerializeField] string defaultPlayerName;
 	public bool addCloneNumber;
 	public string buildId;

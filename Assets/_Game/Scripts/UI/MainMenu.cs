@@ -5,16 +5,46 @@ using UnityEngine;
 public class MainMenu : MonoBehaviour
 {
 
+	ExtNetworkRoomManager networkManager;
+	TransportWrapper transport;
+	MultiplayerMenu mm;
+
 	void Start(){
+		mm = FindObjectOfType<MultiplayerMenu>(true);
+		networkManager = GameObject.FindObjectOfType<ExtNetworkRoomManager>();
+		transport = networkManager.GetComponent<TransportWrapper>();
 		// Return to multiplayer menu if already logged in.
 		if (PlayerEntity.LocalPlayer?.HasSession ?? false){
-			var mm = FindObjectOfType<MultiplayerMenu>(true);
-			// A bit of an extra step, going through the multiplayer menu, but could be useful if there is ever any extra stuff added to the ViewLobbies function.
 			mm?.gameObject.SetActive(true);
 		}
 	}
 
+	public void OnClickSinglePlayer(){
+		networkManager.gameMode = ExtNetworkRoomManager.GameMode.SinglePlayer;
+		networkManager.authenticator = null;
+		networkManager.networkAddress = "localhost";
+		transport.SetPort(7777);
+		networkManager.onlineScene = GetSinglePlayerLevel();
+		networkManager.maxConnections = 1;
+		networkManager.StartHost();
+	}
+
+	public void OnClickMultiplayer(){
+		if (networkManager.authenticator == null) {
+			networkManager.authenticator = GameObject.FindObjectOfType<NewNetworkAuthenticator>();
+		}
+		// Make sure the room scene is being used when starting multiplayer, because the single player button changes it to another scene.
+		networkManager.onlineScene = networkManager.RoomScene;
+		networkManager.maxConnections = Config.MAX_MULTIPLAYER_CONNECTIONS;
+		networkManager.gameMode = ExtNetworkRoomManager.GameMode.Multiplayer;
+		mm.gameObject.SetActive(true);
+	}
+
 	public void OnClickQuit(){
 		Application.Quit();
+	}
+
+	string GetSinglePlayerLevel(){
+		return "Assets/_Game/Scenes/Levels/Level1.unity";
 	}
 }

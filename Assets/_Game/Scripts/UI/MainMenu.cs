@@ -11,7 +11,7 @@ public class MainMenu : MonoBehaviour
 
 	void Start(){
 		mm = FindObjectOfType<MultiplayerMenu>(true);
-		networkManager = GameObject.FindObjectOfType<ExtNetworkRoomManager>();
+		networkManager = GameObject.FindObjectOfType<ExtNetworkRoomManager>(true);
 		transport = networkManager.GetComponent<TransportWrapper>();
 		// Return to multiplayer menu if already logged in.
 		if (PlayerEntity.LocalPlayer?.HasSession ?? false){
@@ -30,9 +30,11 @@ public class MainMenu : MonoBehaviour
 	}
 
 	public void OnClickMultiplayer(){
-		if (networkManager.authenticator == null) {
-			networkManager.authenticator = FindObjectOfType<NewNetworkAuthenticator>();
+		// Make sure the authenticator is set for multiplayer. The single player button sets it to null.
+		if (networkManager.authenticator == null){
+			networkManager.authenticator = networkManager.GetComponent<NewNetworkAuthenticator>();
 		}
+
 		// Make sure the room scene is being used when starting multiplayer, because the single player button changes it to another scene.
 		networkManager.onlineScene = networkManager.RoomScene;
 		networkManager.maxConnections = Config.MAX_MULTIPLAYER_CONNECTIONS;

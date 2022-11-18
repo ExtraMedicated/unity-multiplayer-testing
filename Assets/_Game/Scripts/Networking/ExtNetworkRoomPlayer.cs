@@ -49,7 +49,7 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 	/// <para>Objects on the host have this function called, as there is a local client on the host. The values of SyncVars on object are guaranteed to be initialized correctly with the latest state from the server when this function is called on the client.</para>
 	/// </summary>
 	public override void OnStartClient() {
-		Debug.Log($"OnStartClient {gameObject}");
+		// Debug.Log($"OnStartClient {gameObject}");
 	}
 
 	/// <summary>
@@ -57,72 +57,16 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 	/// <para>This can be used as a hook to invoke effects or do client specific cleanup.</para>
 	/// </summary>
 	public override void OnStopClient() {
-
+		LoginUtility.Logout();
 	}
 
-	// Call this on the client.
-	public void QuitGame(){
-		Debug.Log("<color=red>QuitGame</color>");
-		// I don't fukin know what I'm doing.
-		// if (hasAuthority){
-			CmdDisconnectGame();
-		// } else {
-		// 	ClientDisconnect();
-		// }
-		// CmdDisconnectGame();
-	}
-
-	[Command]
-	void CmdDisconnectGame () {
-		Debug.Log("<color=red>CmdDisconnectGame</color>");
-		if (networkManager.gameMode == ExtNetworkRoomManager.GameMode.SinglePlayer){
-			// This is for single player mode (ie, running as host + client).
-			networkManager.StopHost();
-		} else {
-			ServerDisconnect();
-		}
-	}
-
-	void ServerDisconnect () {
-		if (NetworkServer.active){
-			TargetDisconnectGame();
-		}
-	}
-
-	[TargetRpc]
-	void TargetDisconnectGame () {
-		ClientDisconnect();
-	}
-
-	void ClientDisconnect () {
-		if (!NetworkClient.isConnected){
-			return;
-		}
-		var netMgr = GameObject.FindObjectOfType<NetworkManager>();
-		if (netMgr != null){
-			// stop host if host mode
-			if (NetworkServer.active)
-			{
-				var listener = GameObject.FindObjectOfType<AgentListener>(true);
-				if (listener != null){
-					Destroy(listener.gameObject);
-				}
-				netMgr.StopHost();
-			}
-			// stop client if client-only
-			else
-			{
-				netMgr.StopClient();
-			}
-		}
-	}
 
 	/// <summary>
 	/// Called when the local player object has been set up.
 	/// <para>This happens after OnStartClient(), as it is triggered by an ownership message from the server. This is an appropriate place to activate components or functionality that should only be active for the local player, such as cameras and input.</para>
 	/// </summary>
 	public override void OnStartLocalPlayer() {
-		Debug.Log($"OnStartLocalPlayer {gameObject}");
+		// Debug.Log($"OnStartLocalPlayer {gameObject}");
 		// authInfo = NetworkClient.connection?.authenticationData as AuthenticationInfo;
 		// // If user is not logged in through PlayFab, show the default lobby UI.
 		// if (authInfo != null && !string.IsNullOrEmpty(authInfo.SessionTicket)){
@@ -159,13 +103,12 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 	/// <para>Note: isLocalPlayer is not guaranteed to be set until OnStartLocalPlayer is called.</para>
 	/// </summary>
 	public override void OnClientEnterRoom() {
-		Debug.Log($"OnClientEnterRoom {SceneManager.GetActiveScene().path} | {networkManager.RoomScene} | {playerEntity.name + playerEntity.entityKey.Id}");
-		if (SceneManager.GetActiveScene().path == networkManager.RoomScene){
+		// Debug.Log($"OnClientEnterRoom {SceneManager.GetActiveScene().path} | {networkManager.RoomScene} | {playerEntity.name + playerEntity.entityKey.Id}");
+		if (SceneManager.GetActiveScene().path == networkManager.RoomScene) {
 			if (playerEntity != null && playerEntity.entityKey.Id == PlayerEntity.LocalPlayer?.entityKey.Id){
 				var lobbyUI = FindObjectOfType<JoinedLobbyUI>(true);
 				lobbyUI.gameObject.SetActive(true);
-				Debug.Log("lobbyUI " + lobbyUI);
-				if (LobbyUtility.CurrentlyJoinedLobby != null){
+				if (LobbyUtility.CurrentlyJoinedLobby != null) {
 					lobbyUI.LoadLobby(LobbyUtility.CurrentlyJoinedLobby.lobbyId);
 				}
 			}

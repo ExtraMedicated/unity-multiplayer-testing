@@ -100,14 +100,16 @@ public class Player : NetworkBehaviour
 
 		if (hasAuthority && Input.GetKeyDown(KeyCode.Escape)){
 			if (networkManager.gameMode == ExtNetworkRoomManager.GameMode.Multiplayer){
-				Debug.Log($"LobbyUtility.CurrentlyJoinedLobby.lobbyOwnerId {LobbyUtility.CurrentlyJoinedLobby.lobbyOwnerId }");
-				Debug.Log($"PlayerEntity.LocalPlayer.entityKey.Id {PlayerEntity.LocalPlayer.entityKey.Id }");
-				if (LobbyUtility.CurrentlyJoinedLobby.lobbyOwnerId == PlayerEntity.LocalPlayer.entityKey.Id){
+				// Return to lobby.
+				if (NetworkClient.isHostClient || (LobbyUtility.CurrentlyJoinedLobby != null && LobbyUtility.CurrentlyJoinedLobby.lobbyOwnerId == PlayerEntity.LocalPlayer.entityKey.Id)){
 					LetsAllGoToTheLobby();
 				}
-			} else {
+			} else if (NetworkClient.isHostClient) {
 				// Stop single player game.
 				networkManager.StopHost();
+			} else {
+				// Rage quit.
+				networkManager.StopClient();
 			}
 			return;
 		}

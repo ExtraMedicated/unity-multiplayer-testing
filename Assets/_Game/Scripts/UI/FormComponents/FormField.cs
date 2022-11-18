@@ -7,7 +7,15 @@ public class FormField<T> : MonoBehaviour where T : UnityEngine.UI.Selectable
 {
 	[SerializeField] string labelText = "Label";
 	[SerializeField] UIText label;
-	protected T component;
+	T _c;
+	protected T component {
+		get {
+			if (_c == null){
+				_c = GetComponentInChildren<T>(true);
+			}
+			return _c;
+		}
+	}
 
 	public bool inputEnabled {
 		get => component.interactable;
@@ -15,7 +23,6 @@ public class FormField<T> : MonoBehaviour where T : UnityEngine.UI.Selectable
 	}
 
 	protected virtual void Awake(){
-		component = GetComponentInChildren<T>();
 		label.text = labelText;
 	}
 

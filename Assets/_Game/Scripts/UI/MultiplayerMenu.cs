@@ -11,19 +11,23 @@ using Newtonsoft.Json;
 
 public class MultiplayerMenu : MonoBehaviour
 {
-	const string LOCAL_PLAYER_NAME_KEY = "local_multiplayer_name";
-	const string ONLINE_PLAYER_NAME_KEY = "online_multiplayer_name";
 	// [SerializeField] GameObject pfEventProcessorPrefab;
 	[SerializeField] LoginUtility loginUtility;
 	[SerializeField] GameObject lobbyPannel;
 	[SerializeField] InputFieldWrapper playerNameInput;
+	[SerializeField] InputFieldWrapper localIPAddressField;
+	[SerializeField] InputFieldWrapper localPortNumField;
+	[SerializeField] GameObject localNetMultiplayerPanel;
 	MainMenu mainMenu;
 	ExtNetworkRoomManager networkManager;
+	TransportWrapper transportWrapper;
 
 	bool isAttemptingAuthentication;
 
 	void Awake(){
-		mainMenu = FindObjectOfType<MainMenu>();
+		mainMenu = FindObjectOfType<MainMenu>(true);
+		networkManager = FindObjectOfType<ExtNetworkRoomManager>(true);
+		transportWrapper = networkManager.GetComponent<TransportWrapper>();
 	}
 
 	void OnEnable(){
@@ -31,21 +35,18 @@ public class MultiplayerMenu : MonoBehaviour
 		OnScreenMessage.SetText(string.Empty);
 		playerNameInput.inputEnabled = true;
 		mainMenu.gameObject.SetActive(false);
-
-		if (networkManager == null){
-			networkManager = FindObjectOfType<ExtNetworkRoomManager>();
-		}
+		localNetMultiplayerPanel.SetActive(false);
+		Invoke(nameof(InitName), 0.1f);
 
 		if (PlayerEntity.LocalPlayer?.HasSession ?? false){
 			ViewLobbies();
-		} else {
-			Invoke(nameof(InitName), 0.1f);
 		}
 	}
 
 	void OnDisable(){
 		loginUtility.OnError -= OnError;
 		mainMenu.gameObject.SetActive(true);
+		localNetMultiplayerPanel.SetActive(false);
 	}
 
 	void InitName(){
@@ -53,8 +54,8 @@ public class MultiplayerMenu : MonoBehaviour
 			playerNameInput.text = Config.Instance.GetDefaultPlayerName();
 		}
 		if (string.IsNullOrWhiteSpace(playerNameInput.text)){
-			Debug.Log(ONLINE_PLAYER_NAME_KEY + ": " +PlayerPrefs.GetString(ONLINE_PLAYER_NAME_KEY));
-			playerNameInput.text = PlayerPrefs.GetString(ONLINE_PLAYER_NAME_KEY);
+			Debug.Log(PlayerInfo.ONLINE_PLAYER_NAME_KEY + ": " +PlayerPrefs.GetString(PlayerInfo.ONLINE_PLAYER_NAME_KEY));
+			playerNameInput.text = PlayerPrefs.GetString(PlayerInfo.ONLINE_PLAYER_NAME_KEY);
 		}
 	}
 
@@ -75,27 +76,27 @@ public class MultiplayerMenu : MonoBehaviour
 	}
 
 	public void OnClickLocal(){
-		if (!isAttemptingAuthentication){
-			OnScreenMessage.SetText(string.Empty);
-			if (!ValidateName()) return;
-			OnScreenMessage.SetText("Not implemented yet", "red");
+		if (localNetMultiplayerPanel.activeInHierarchy){
+			localNetMultiplayerPanel.SetActive(false);
+		} else {
+			loginUtility.authenticationMode = LoginUtility.AuthenticationMode.Local;
+			if (!isAttemptingAuthentication){
+				OnScreenMessage.SetText(string.Empty);
+				if (!ValidateName()) return;
+				localNetMultiplayerPanel.SetActive(true);
+			}
 		}
 	}
 
 	void AttemptPlayfabLogin(){
 		OnScreenMessage.SetText("Logging in...");
-		// Make sure the authenticator is set. (Although it isn't actually used until connecting to a lobby.)
-		if (networkManager.authenticator == null){
-			networkManager.authenticator = networkManager.GetComponent<NewNetworkAuthenticator>();
-		}
 		isAttemptingAuthentication = true;
 		playerNameInput.inputEnabled = false;
 		var playerName = !string.IsNullOrWhiteSpace(playerNameInput.text) ? playerNameInput.text : "Nameless nobody";
 		if (!string.IsNullOrWhiteSpace(playerName)){
-			Debug.Log($"set player name: {playerName}");
-			PlayerPrefs.SetString(ONLINE_PLAYER_NAME_KEY, playerName);
+			PlayerPrefs.SetString(PlayerInfo.ONLINE_PLAYER_NAME_KEY, playerName);
 		}
-		loginUtility.AttemptPlayfabLogin(playerName, LoginUtility.AuthenticationMode.CustomID, OnLoginResponse, ViewLobbies);
+		loginUtility.AttemptPlayfabLogin(playerName, OnLoginResponse, ViewLobbies);
 	}
 
 	private void OnError(string error)

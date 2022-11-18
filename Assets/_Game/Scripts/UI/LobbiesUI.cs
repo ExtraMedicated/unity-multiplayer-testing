@@ -21,17 +21,11 @@ public class LobbiesUI : MonoBehaviour
 	[SerializeField] TMP_InputField searchField;
 	[SerializeField] InputFieldWrapper lobbyCodeInput;
 
-	NewNetworkAuthenticator networkAuthenticator;
 
 	bool fetchingMatches;
 
 	void OnEnable(){
 		OnScreenMessage.SetText(string.Empty);
-		// Make sure authenticator is set up for multiplayer.
-		if (networkManager.authenticator == null) {
-			networkManager.authenticator = GameObject.FindObjectOfType<NewNetworkAuthenticator>();
-		}
-		networkAuthenticator = networkManager.authenticator as NewNetworkAuthenticator;
 		AddEventHandlers();
 		Invoke(nameof(FindLobbies), INITIAL_SEARCH_DELAY);
 	}
@@ -45,12 +39,6 @@ public class LobbiesUI : MonoBehaviour
 		// LobbyUtility.OnLobbyFindLobbiesCompleted += OnLobbyFindLobbiesCompleted;
 		LobbyUtility.OnLobbyJoinCompleted += OnLobbyJoinCompleted;
 
-		if (networkAuthenticator != null){
-			networkAuthenticator.AuthErrorEvent += OnAuthError;
-			networkAuthenticator.ClientAuthenticateEvent += AuthenticateClient;
-			networkAuthenticator.AuthResponseEvent += OnAuthResponse;
-			networkAuthenticator.OnClientAuthenticated.AddListener(AuthSuccess);
-		}
 	}
 
 	void RemoveEventHandlers(){
@@ -58,39 +46,8 @@ public class LobbiesUI : MonoBehaviour
 		// LobbyUtility.OnLobbyFindLobbiesCompleted -= OnLobbyFindLobbiesCompleted;
 		LobbyUtility.OnLobbyJoinCompleted -= OnLobbyJoinCompleted;
 
-		if (networkAuthenticator != null){
-			networkAuthenticator.AuthErrorEvent -= OnAuthError;
-			networkAuthenticator.ClientAuthenticateEvent -= AuthenticateClient;
-			networkAuthenticator.AuthResponseEvent -= OnAuthResponse;
-		}
 	}
 
-	void AuthenticateClient(){
-		if (PlayFabClientAPI.IsClientLoggedIn()){
-			// Tell the server that the user logged in.
-			NetworkingMessages.SendAuthRequestMessage();
-		} else {
-			OnAuthError("Not logged in.");
-		}
-	}
-
-	private void OnAuthError(string error)
-	{
-		DisplayMessage(error, "red");
-		NetworkClient.Disconnect();
-	}
-
-	private void OnAuthResponse(AuthResponseMessage msg)
-	{
-		// TODO: Is it redundant to do this here?
-		NetworkClient.connection.authenticationData = msg.playerEntity;
-	}
-
-	void AuthSuccess()
-	{
-		// Debug.Log("Logged in? " + (PlayFabClientAPI.IsClientLoggedIn() ? "Yes" : "No"));
-		Debug.Log("Auth Success!");
-	}
 
 	public void DisplayMessage(string text, string color = ""){
 		OnScreenMessage.SetText(text, color);
@@ -105,8 +62,7 @@ public class LobbiesUI : MonoBehaviour
 	public void OnClickedCancel(){
 		DisplayMessage(string.Empty);
 		// "log out" and return to menu.
-		PlayFabClientAPI.ForgetAllCredentials();
-		PlayerEntity.LocalPlayer = null;
+		LoginUtility.Logout();
 		multiplayerMenu.gameObject.SetActive(true);
 		gameObject.SetActive(false);
 	}
@@ -287,7 +243,7 @@ public class LobbiesUI : MonoBehaviour
 		if (matchmakingUI.gameObject.activeInHierarchy){
 			matchmakingUI.gameObject.SetActive(false);
 		}
-		DisplayMessage("Connecting...");
+		DisplayMessage($"Connecting to {networkManager.networkAddress}:{transportWrapper.GetPort()}...");
 		Debug.Log($"{PlayerEntity.LocalPlayer?.name} JoinedLobby {lobby.Id}");
 		if (lobby.TryGetOwner(out PFEntityKey owner)){
 			LobbyUtility.CurrentlyJoinedLobby = new BasicLobbyInfo {
@@ -330,7 +286,10 @@ public class LobbiesUI : MonoBehaviour
 		ExtDebug.LogJson("OnRequestedServerResponse: ", response);
 		networkManager.networkAddress = response.IPV4Address;
 		transportWrapper.SetPort((ushort)response.Ports[0].Num);
+
+		// Starting the client triggers the Mirror authentication.
 		networkManager.StartClient();
+
 		StartCoroutine(CheckConnectionStatus(transportWrapper.GetTimeoutMS()/1000f));
 	}
 

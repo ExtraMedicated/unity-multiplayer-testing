@@ -18,16 +18,16 @@ public class LobbyUtility : MonoBehaviour {
 	public static event Action<PlayFab.Multiplayer.Lobby> OnLobbyJoinCompleted;
 
 	public static BasicLobbyInfo CurrentlyJoinedLobby {
-		get => instance.currentlyJoinedLobby;
+		get => instance?.currentlyJoinedLobby;
 		set => instance.currentlyJoinedLobby = value;
 	}
 
 	static DateTime timeOfLastSearch = DateTime.MinValue;
 
 	void Awake(){
-		if (instance != null){
-			Destroy(gameObject);
-			return;
+		// Replace old instance with a fresh new one to prevent strange errors.
+		if (instance != null && instance != this){
+			Destroy(instance.gameObject);
 		}
 		instance = this;
 		DontDestroyOnLoad(gameObject);
@@ -176,7 +176,6 @@ public class LobbyUtility : MonoBehaviour {
 
 		var joinConfig = new LobbyJoinConfiguration();
 		joinConfig.MemberProperties[PlayerEntity.PLAYER_NAME_KEY] = PlayerEntity.LocalPlayer.name;
-		// joinConfig.MemberProperties["MemberProp2"] = "MemberValue2";
 
 		OnScreenMessage.SetText($"Creating Lobby: {name}...");
 

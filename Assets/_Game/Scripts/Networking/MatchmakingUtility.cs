@@ -21,9 +21,9 @@ public class MatchmakingUtility : MonoBehaviour
 	public static event Action OnTicketCanceled;
 
 	void Awake(){
-		if (instance != null){
-			Destroy(gameObject);
-			return;
+		// Replace old instance with a fresh new one to prevent strange errors.
+		if (instance != null && instance != this){
+			Destroy(instance.gameObject);
 		}
 		instance = this;
 		DontDestroyOnLoad(gameObject);

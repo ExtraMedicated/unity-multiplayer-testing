@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Mirror;
 using PlayFab;
 using PlayFab.ClientModels;
 using PlayFab.DataModels;
@@ -11,7 +12,7 @@ public class LoginUtility : MonoBehaviour {
 
 	public bool appendNameToDeviceID;
 	public bool useRandomFakeDeviceId;
-
+	static LoginUtility instance;
 
 	public Action<string> OnError;
 
@@ -21,13 +22,74 @@ public class LoginUtility : MonoBehaviour {
 		PlayFabLogin,
 		PlayFabRegister,
 	}
-	AuthenticationMode authenticationMode;
+	public AuthenticationMode authenticationMode;
+	ExtNetworkRoomManager networkManager;
+	void Awake(){
+		networkManager = FindObjectOfType<ExtNetworkRoomManager>();
+		// Replace old instance with a fresh new one to prevent strange errors.
+		if (instance != null && instance != this){
+			Destroy(instance.gameObject);
+		}
+		instance = this;
+		DontDestroyOnLoad(gameObject);
+	}
 
-	public struct LoginParams {
-		public string playerName;
-		public AuthenticationMode authenticationMode;
-		Action<LoginResult> successCallback;
-		Action<string> errorCallback;
+	public bool _enabled;
+
+	void OnEnable(){
+		var networkAuthenticator = networkManager.authenticator as NewNetworkAuthenticator;
+		if (networkAuthenticator != null){
+			networkAuthenticator.AuthErrorEvent += OnAuthError;
+			networkAuthenticator.ClientAuthenticateEvent += AuthenticateClient;
+			networkAuthenticator.AuthResponseEvent += OnAuthResponse;
+			networkAuthenticator.OnClientAuthenticated.AddListener(AuthSuccess);
+		}
+		_enabled = true;
+	}
+	void OnDisable(){
+		var networkAuthenticator = networkManager.authenticator as NewNetworkAuthenticator;
+		if (networkAuthenticator != null){
+			networkAuthenticator.AuthErrorEvent -= OnAuthError;
+			networkAuthenticator.ClientAuthenticateEvent -= AuthenticateClient;
+			networkAuthenticator.AuthResponseEvent -= OnAuthResponse;
+		}
+		_enabled = false;
+	}
+
+	void AuthenticateClient(){
+		switch (authenticationMode){
+			case AuthenticationMode.CustomID:
+				if (PlayFabClientAPI.IsClientLoggedIn()){
+					// Tell the server that the user logged in.
+					NetworkingMessages.SendAuthRequestMessage();
+				} else {
+					OnAuthError("Not logged in.");
+				}
+				break;
+			case AuthenticationMode.Local:
+				NetworkingMessages.SendAuthRequestMessage();
+				break;
+			default:
+				throw new NotImplementedException($"AuthenticationMode {authenticationMode} is not implemented");
+		}
+	}
+
+	private void OnAuthError(string error)
+	{
+		OnScreenMessage.SetText(error, "red");
+		NetworkClient.Disconnect();
+	}
+
+	private void OnAuthResponse(AuthResponseMessage msg)
+	{
+		// TODO: Is it redundant to do this here?
+		NetworkClient.connection.authenticationData = msg.playerEntity;
+	}
+
+	void AuthSuccess()
+	{
+		// Debug.Log("Logged in? " + (PlayFabClientAPI.IsClientLoggedIn() ? "Yes" : "No"));
+		Debug.Log("Auth Success!");
 	}
 
 
@@ -49,8 +111,8 @@ public class LoginUtility : MonoBehaviour {
 		return deviceUniqueIdentifier;
 	}
 
-
-	public void AttemptPlayfabLogin(string playerName, AuthenticationMode authenticationMode, Action onLoginResult, Action afterLogin){
+	public void AttemptPlayfabLogin(string playerName, Action onLoginResult, Action afterLogin){
+		authenticationMode = LoginUtility.AuthenticationMode.CustomID;
 		Debug.Log("AuthenticateClient " + authenticationMode.ToString());
 		// Log into playfab
 		var request = new LoginWithCustomIDRequest{
@@ -73,6 +135,14 @@ public class LoginUtility : MonoBehaviour {
 			OnPlayFabError);
 	}
 
+	public static void Logout(){
+		PlayFabClientAPI.ForgetAllCredentials();
+		if (NetworkClient.isConnected){
+			NetworkClient.connection.authenticationData = null;
+		}
+		PlayerEntity.LocalPlayer = null;
+	}
+
 	private void OnPlayFabError(PlayFabError e){
 		ExtDebug.LogJsonError("Login error: ", e.GenerateErrorReport());
 		OnError?.Invoke(e.ErrorMessage);
@@ -80,7 +150,6 @@ public class LoginUtility : MonoBehaviour {
 
 	private void OnPlayFabLoginSuccess(LoginResult response, string playerName, Action onLoginResult, Action afterLogin)
 	{
-		// Debug.Log(JsonConvert.SerializeObject(response));
 		PlayFabMultiplayer.SetEntityToken(response.AuthenticationContext); // Is this needed?
 		onLoginResult.Invoke();
 
@@ -107,7 +176,6 @@ public class LoginUtility : MonoBehaviour {
 
 	void SetPlayerData(string sessionTicket, string playerName, PFEntityKey entity, Action callback){
 		// Debug.Log(JsonConvert.SerializeObject(setObjects));
-
 
 		// Not sure if I'm actually using this. I'm pretty sure the playerName is coming through the UserTitleDisplayName.
 		var setObjects = new List<SetObject>{

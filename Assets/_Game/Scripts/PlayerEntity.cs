@@ -20,14 +20,20 @@ public class PlayerEntity {
 
 	public PlayerEntity(){}
 
+	// This constructor is used for local/custom multiplayer (Non-PlayFab)
+	public PlayerEntity(PlayerInfo playerInfo){
+		this.sessionTicket = null;
+		entityKey = new EntityKey {
+			Id = Guid.NewGuid().ToString(),
+		};
+		name = playerInfo.PlayerName;
+	}
+
+	// This constructor is used for PlayFab multiplayer
 	public PlayerEntity(EntityKey entity, PlayerInfo playerInfo, string sessionTicket = null){
 		this.sessionTicket = sessionTicket;
 		entityKey = entity;
 		name = playerInfo.PlayerName;
-	}
-	public PlayerEntity(Member member){
-		entityKey = member.MemberEntity;
-		member.MemberData.TryGetValue(PLAYER_NAME_KEY, out name);
 	}
 
 	public string GetSerializedProperties(){
@@ -39,6 +45,7 @@ public class PlayerEntity {
 
 [Serializable]
 public class PlayerInfo {
+	public const string ONLINE_PLAYER_NAME_KEY = "multiplayer_name";
 	public string PlayerName;
 	public SetObject ToSetObject() => new SetObject { ObjectName = "PlayerData", DataObject = this };
 }

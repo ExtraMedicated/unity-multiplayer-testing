@@ -16,19 +16,38 @@ public class JoinedLobbyUI : MonoBehaviour {
 	[SerializeField] Transform playerListPanel;
 	[SerializeField] Button leaveLobbyBtn;
 	[SerializeField] Button startGameBtn;
+	[SerializeField] GameObject levelSelectPanel;
 	public GameObject playerListItemPrefab;
 
 	ExtNetworkRoomManager networkManager;
 	public Dictionary<uint, bool> playerReadyStates = new Dictionary<uint, bool>();
 	void OnEnable(){
 		leaveLobbyBtn.interactable = true;
-		PlayFabMultiplayer.OnLobbyMemberAdded += OnMemberAdded;
-		PlayFabMultiplayer.OnLobbyMemberRemoved += OnMemberRemoved;
-		LobbyUtility.OnLobbyDisconnected += OnLobbyDisconnected;
 		if (networkManager == null){
 			networkManager = FindObjectOfType<ExtNetworkRoomManager>();
 		}
-		networkManager.OnAllPlayersReadyStateChanged += OnChangeLobbyReady;
+		var canvasGroup = GetComponent<CanvasGroup>();
+
+		// If CurrentlyJoinedLobby is not null, that means we're using a PlayFab lobby and can use the fancy UI.
+		// Otherwise, show the default Mirror UI plus the level select.
+		if (LobbyUtility.CurrentlyJoinedLobby != null){
+			levelSelectPanel.SetActive(false);
+			canvasGroup.alpha = 1;
+			canvasGroup.interactable = true;
+			canvasGroup.blocksRaycasts = true;
+			networkManager.showRoomGUI = false;
+			PlayFabMultiplayer.OnLobbyMemberAdded += OnMemberAdded;
+			PlayFabMultiplayer.OnLobbyMemberRemoved += OnMemberRemoved;
+			LobbyUtility.OnLobbyDisconnected += OnLobbyDisconnected;
+			networkManager.OnAllPlayersReadyStateChanged += OnChangeLobbyReady;
+		} else {
+			levelSelectPanel.SetActive(true);
+			levelSelectPanel.GetComponentInChildren<LevelSelect>().UseSelectedLevel();
+			canvasGroup.alpha = 0;
+			canvasGroup.blocksRaycasts = false;
+			canvasGroup.interactable = false;
+			networkManager.showRoomGUI = true;
+		}
 	}
 
 	void OnDisable(){

@@ -14,12 +14,12 @@ public class FormField<T> : MonoBehaviour where T : UnityEngine.UI.Selectable
 		set => component.interactable = value;
 	}
 
-	protected virtual void Start(){
+	protected virtual void Awake(){
 		component = GetComponentInChildren<T>();
 		label.text = labelText;
 	}
 
 	void OnValidate(){
-		Start();
+		Awake();
 	}
 }

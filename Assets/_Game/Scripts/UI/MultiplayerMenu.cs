@@ -17,23 +17,18 @@ public class MultiplayerMenu : MonoBehaviour
 	[SerializeField] LoginUtility loginUtility;
 	[SerializeField] GameObject lobbyPannel;
 	[SerializeField] InputFieldWrapper playerNameInput;
-	[SerializeField] UIText statusText;
-	MainMenu mm;
-	MainMenu mainMenu {
-		get {
-			if (mm == null){
-				mm = FindObjectOfType<MainMenu>();
-			}
-			return mm;
-		}
-	}
+	MainMenu mainMenu;
 	ExtNetworkRoomManager networkManager;
 
 	bool isAttemptingAuthentication;
 
+	void Awake(){
+		mainMenu = FindObjectOfType<MainMenu>();
+	}
+
 	void OnEnable(){
 		loginUtility.OnError += OnError;
-		statusText.text = string.Empty;
+		OnScreenMessage.SetText(string.Empty);
 		playerNameInput.inputEnabled = true;
 		mainMenu.gameObject.SetActive(false);
 
@@ -65,7 +60,7 @@ public class MultiplayerMenu : MonoBehaviour
 
 	bool ValidateName(){
 		if (string.IsNullOrWhiteSpace(playerNameInput.text)){
-			DisplayMessage("Please enter your name", "red");
+			OnScreenMessage.SetText("Please enter your name", "red");
 			return false;
 		}
 		return true;
@@ -73,7 +68,7 @@ public class MultiplayerMenu : MonoBehaviour
 
 	public void OnClickOnline(){
 		if (!isAttemptingAuthentication){
-			statusText.text = string.Empty;
+			OnScreenMessage.SetText(string.Empty);
 			if (!ValidateName()) return;
 			AttemptPlayfabLogin();
 		}
@@ -81,22 +76,14 @@ public class MultiplayerMenu : MonoBehaviour
 
 	public void OnClickLocal(){
 		if (!isAttemptingAuthentication){
-			statusText.text = string.Empty;
+			OnScreenMessage.SetText(string.Empty);
 			if (!ValidateName()) return;
-			DisplayMessage("Not implemented yet", "red");
-		}
-	}
-
-	void DisplayMessage(string text, string color = ""){
-		if (!string.IsNullOrEmpty(color)){
-			statusText.SetText(text, color);
-		} else {
-			statusText.text = text;
+			OnScreenMessage.SetText("Not implemented yet", "red");
 		}
 	}
 
 	void AttemptPlayfabLogin(){
-		DisplayMessage("Logging in...");
+		OnScreenMessage.SetText("Logging in...");
 		// Make sure the authenticator is set. (Although it isn't actually used until connecting to a lobby.)
 		if (networkManager.authenticator == null){
 			networkManager.authenticator = networkManager.GetComponent<NewNetworkAuthenticator>();
@@ -113,7 +100,7 @@ public class MultiplayerMenu : MonoBehaviour
 
 	private void OnError(string error)
 	{
-		DisplayMessage(error, "red");
+		OnScreenMessage.SetText(error, "red");
 		isAttemptingAuthentication = false;
 		playerNameInput.inputEnabled = true;
 		// // Disconnect after failed login
@@ -122,7 +109,7 @@ public class MultiplayerMenu : MonoBehaviour
 
 	private void OnLoginResponse()
 	{
-		DisplayMessage("Logged in");
+		OnScreenMessage.SetText("Logged in");
 		isAttemptingAuthentication = false;
 		playerNameInput.inputEnabled = true;
 	}

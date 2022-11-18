@@ -7,9 +7,9 @@ using UnityEngine.UI;
 public class SliderFieldWrapper : FormField<Slider>
 {
 	[SerializeField] TMP_Text valueDisplay;
-	protected override void Start()
+	protected override void Awake()
 	{
-		base.Start();
+		base.Awake();
 		component.onValueChanged.AddListener(OnChangedValue);
 		OnChangedValue(value);
 	}

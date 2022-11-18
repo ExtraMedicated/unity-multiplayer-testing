@@ -31,13 +31,14 @@ public class MainMenu : MonoBehaviour
 
 	public void OnClickMultiplayer(){
 		if (networkManager.authenticator == null) {
-			networkManager.authenticator = GameObject.FindObjectOfType<NewNetworkAuthenticator>();
+			networkManager.authenticator = FindObjectOfType<NewNetworkAuthenticator>();
 		}
 		// Make sure the room scene is being used when starting multiplayer, because the single player button changes it to another scene.
 		networkManager.onlineScene = networkManager.RoomScene;
 		networkManager.maxConnections = Config.MAX_MULTIPLAYER_CONNECTIONS;
 		networkManager.gameMode = ExtNetworkRoomManager.GameMode.Multiplayer;
 		mm.gameObject.SetActive(true);
+		gameObject.SetActive(false);
 	}
 
 	public void OnClickQuit(){

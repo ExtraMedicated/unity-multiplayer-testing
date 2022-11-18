@@ -15,8 +15,8 @@ public class InputFieldWrapper : FormField<TMP_InputField>
 		set => component.text = value;
 	}
 
-	protected override void Start(){
-		base.Start();
+	protected override void Awake(){
+		base.Awake();
 		placeholder.text = placeholderText;
 		text = defaultText;
 	}

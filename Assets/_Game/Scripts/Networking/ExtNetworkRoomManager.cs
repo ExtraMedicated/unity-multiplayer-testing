@@ -131,23 +131,23 @@ public class ExtNetworkRoomManager : NetworkRoomManager {
 
 	public override void OnRoomServerDisconnect(NetworkConnectionToClient conn)
 	{
-		Debug.Log("OnRoomServerDisconnect " + conn.identity);
-		// The networkRoomPlayer would be null for single player mode, so we can skip this part.
-		if (gameMode == GameMode.Multiplayer){
-			// The identity might be a game player instead of a room player. Check for that.
-			var p = conn.identity.GetComponent<Player>();
-			if (p != null){
-				Debug.Log("identity is on game player. room player is " + p.networkRoomPlayer);
-				// First, switch the identity back to the room player so that it gets cleaned up.
-				// NetworkServer.ReplacePlayerForConnection(conn, p.networkRoomPlayer.gameObject);
-				// NetworkServer.Destroy(p.gameObject);
-				if (p.networkRoomPlayer != null){
-					ServerRemovePlayer(p.networkRoomPlayer.playerEntity.entityKey.Id);
-				}
-			} else {
-				Debug.Log("identity is on room player");
-				ServerRemovePlayer(conn.identity.GetComponent<ExtNetworkRoomPlayer>().playerEntity.entityKey.Id);
+		Debug.Log(gameMode + " OnRoomServerDisconnect " + conn.identity);
+		// The identity might be a game player instead of a room player. Check for that.
+		var p = conn.identity.GetComponent<Player>();
+		if (p != null){
+			Debug.Log("identity is on game player. room player is " + p.networkRoomPlayer);
+			// First, switch the identity back to the room player so that it gets cleaned up.
+			// NetworkServer.ReplacePlayerForConnection(conn, p.networkRoomPlayer.gameObject);
+			// NetworkServer.Destroy(p.gameObject);
+
+			// The gameMode variable might not be set on the server, but the networkRoomPlayer would be null for single player mode, so we can skip this part.
+			if (p.networkRoomPlayer != null){
+				ServerRemovePlayer(p.networkRoomPlayer.playerEntity.entityKey.Id);
 			}
+		} else {
+			Debug.Log("identity is on room player");
+			ServerRemovePlayer(conn.identity.GetComponent<ExtNetworkRoomPlayer>().playerEntity.entityKey.Id);
 		}
+
 	}
 }

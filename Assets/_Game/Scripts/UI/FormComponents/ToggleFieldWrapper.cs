@@ -8,9 +8,9 @@ using UnityEngine.Events;
 public class ToggleFieldWrapper : FormField<Toggle>
 {
 	public UnityEvent<bool> OnValueChanged;
-	protected override void Start()
+	protected override void Awake()
 	{
-		base.Start();
+		base.Awake();
 		component.onValueChanged.AddListener(OnChangedValue);
 		OnChangedValue(value);
 	}

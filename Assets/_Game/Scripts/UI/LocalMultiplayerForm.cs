@@ -7,7 +7,9 @@ public class LocalMultiplayerForm : MonoBehaviour {
 	[SerializeField] InputFieldWrapper localPortNumField;
 	ExtNetworkRoomManager networkManager;
 	TransportWrapper transportWrapper;
+	MultiplayerMenu multiplayerMenu;
 	void Awake(){
+		multiplayerMenu = FindObjectOfType<MultiplayerMenu>();
 		networkManager = FindObjectOfType<ExtNetworkRoomManager>();
 		transportWrapper = networkManager.GetComponent<TransportWrapper>();
 	}
@@ -25,21 +27,25 @@ public class LocalMultiplayerForm : MonoBehaviour {
 	}
 
 	public void HostLocalServer(){
-		UpdateTransport();
-		OnScreenMessage.SetText("Starting host...");
-		//Set PlayerEntity.LocalPlayer
-		SetPlayerData();
-		networkManager.StartHost();
-		StartCoroutine(CheckConnectionStatus(transportWrapper.GetTimeoutMS()/1000f));
+		if (multiplayerMenu.ValidateName()){
+			UpdateTransport();
+			OnScreenMessage.SetText("Starting host...");
+			//Set PlayerEntity.LocalPlayer
+			SetPlayerData();
+			networkManager.StartHost();
+			StartCoroutine(CheckConnectionStatus(transportWrapper.GetTimeoutMS()/1000f));
+		}
 	}
 
 	public void JoinLocalServer(){
-		UpdateTransport();
-		OnScreenMessage.SetText("Starting client...");
-		//Set PlayerEntity.LocalPlayer
-		SetPlayerData();
-		networkManager.StartClient();
-		StartCoroutine(CheckConnectionStatus(transportWrapper.GetTimeoutMS()/1000f));
+		if (multiplayerMenu.ValidateName()){
+			UpdateTransport();
+			OnScreenMessage.SetText("Starting client...");
+			//Set PlayerEntity.LocalPlayer
+			SetPlayerData();
+			networkManager.StartClient();
+			StartCoroutine(CheckConnectionStatus(transportWrapper.GetTimeoutMS()/1000f));
+		}
 	}
 
 	void SetPlayerData(){

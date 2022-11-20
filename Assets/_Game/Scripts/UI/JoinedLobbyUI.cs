@@ -16,7 +16,7 @@ public class JoinedLobbyUI : MonoBehaviour {
 	[SerializeField] Transform playerListPanel;
 	[SerializeField] Button leaveLobbyBtn;
 	[SerializeField] Button startGameBtn;
-	[SerializeField] GameObject levelSelectPanel;
+	[SerializeField] GameObject simpleLobbyPanel;
 	public GameObject playerListItemPrefab;
 
 	ExtNetworkRoomManager networkManager;
@@ -31,7 +31,7 @@ public class JoinedLobbyUI : MonoBehaviour {
 		// If CurrentlyJoinedLobby is not null, that means we're using a PlayFab lobby and can use the fancy UI.
 		// Otherwise, show the default Mirror UI plus the level select.
 		if (LobbyUtility.CurrentlyJoinedLobby != null){
-			levelSelectPanel.SetActive(false);
+			simpleLobbyPanel.SetActive(false);
 			canvasGroup.alpha = 1;
 			canvasGroup.interactable = true;
 			canvasGroup.blocksRaycasts = true;
@@ -41,8 +41,8 @@ public class JoinedLobbyUI : MonoBehaviour {
 			LobbyUtility.OnLobbyDisconnected += OnLobbyDisconnected;
 			networkManager.OnAllPlayersReadyStateChanged += OnChangeLobbyReady;
 		} else {
-			levelSelectPanel.SetActive(true);
-			levelSelectPanel.GetComponentInChildren<LevelSelect>().UseSelectedLevel();
+			simpleLobbyPanel.SetActive(true);
+			simpleLobbyPanel.GetComponentInChildren<LevelSelect>().UseSelectedLevel();
 			canvasGroup.alpha = 0;
 			canvasGroup.blocksRaycasts = false;
 			canvasGroup.interactable = false;
@@ -153,14 +153,12 @@ public class JoinedLobbyUI : MonoBehaviour {
 	}
 
 	public void StartGame(){
-		var updateData = new LobbyDataUpdate {
-			MembershipLock = LobbyMembershipLock.Locked,
-		};
 		LobbyUtility.UpdateLobby(lobby._lobby, PlayFab.MultiplayerModels.MembershipLock.Locked, () => NetworkingMessages.SendBeginGameMessage());
 	}
 
 	public void LeaveLobby(){
 		StartCoroutine(TempDisableLeaveBtn());
+		Debug.Log($"lobby.id {lobby.id} | PlayerEntity.LocalPlayer {PlayerEntity.LocalPlayer}");
 		LobbyUtility.LeaveLobby(lobby.id, PlayerEntity.LocalPlayer.entityKey, OnError);
 	}
 
@@ -182,7 +180,11 @@ public class JoinedLobbyUI : MonoBehaviour {
 		Debug.Log($"{PlayerEntity.LocalPlayer?.name} LeftLobby {lobbyId}");
 		// DisplayMessage($"{PlayerEntity.LocalPlayer?.name} LeftLobby {lobbyId}");
 		LobbyUtility.CurrentlyJoinedLobby = null;
-		networkManager.StopClient();
+		if (NetworkClient.isHostClient){
+			networkManager.StopHost();
+		} else {
+			networkManager.StopClient();
+		}
 	}
 	#endregion
 

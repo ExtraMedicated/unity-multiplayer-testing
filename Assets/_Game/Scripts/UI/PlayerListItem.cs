@@ -33,7 +33,7 @@ public class PlayerListItem : MonoBehaviour {
 			networkRoomManager = FindObjectOfType<ExtNetworkRoomManager>();
 		}
 		#if (UNITY_IOS || UNITY_ANDROID || UNITY_WP8 || UNITY_IPHONE)
-			kickButton.gameObject.SetActive(enableKickButtons);
+			kickButton.gameObject.SetActive(enableKickButton);
 		#else
 			kickButton.gameObject.SetActive(false);
 		#endif

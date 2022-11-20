@@ -154,7 +154,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultPlayerName: 
   addCloneNumber: 0
-  buildId: 946b08cd-5147-412e-9def-bc809effac42
+  buildId: 
   buildAliasId: 8261b1b2-ad8b-4018-a885-a963516aa023
   forceLocalServer: 1
   localServerIP: localhost
@@ -2992,7 +2992,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Filter
+  m_text: Search
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3101,7 +3101,6 @@ MonoBehaviour:
   appendNameToDeviceID: 1
   useRandomFakeDeviceId: 0
   authenticationMode: 0
-  _enabled: 0
 --- !u!4 &790643731
 Transform:
   m_ObjectHideFlags: 0
@@ -3131,7 +3130,7 @@ GameObject:
   - component: {fileID: 817510489}
   - component: {fileID: 817510488}
   m_Layer: 5
-  m_Name: Filter
+  m_Name: Search
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3554,7 +3553,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: New Text
+  m_text: Messages
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -4829,7 +4828,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4974852046967682873, guid: b2701f7be7a197c44bb63f4d3a76b953, type: 3}
       propertyPath: m_text
-      value: Private Lobby
+      value: Make it invisible
       objectReference: {fileID: 0}
     - target: {fileID: 4974852046967682873, guid: b2701f7be7a197c44bb63f4d3a76b953, type: 3}
       propertyPath: m_fontColor.b
@@ -6199,6 +6198,10 @@ PrefabInstance:
       value: 69.6215
       objectReference: {fileID: 0}
     - target: {fileID: 153830826708021826, guid: 2a4b533d927b42f40a23c9b0aa67ad4b, type: 3}
+      propertyPath: m_text
+      value: Lobby Code
+      objectReference: {fileID: 0}
+    - target: {fileID: 153830826708021826, guid: 2a4b533d927b42f40a23c9b0aa67ad4b, type: 3}
       propertyPath: m_fontColor.b
       value: 0.14901961
       objectReference: {fileID: 0}
@@ -6328,6 +6331,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8938350603707444638, guid: 2a4b533d927b42f40a23c9b0aa67ad4b, type: 3}
       propertyPath: placeholderText
+      value: Enter code...
+      objectReference: {fileID: 0}
+    - target: {fileID: 9068238562828439319, guid: 2a4b533d927b42f40a23c9b0aa67ad4b, type: 3}
+      propertyPath: m_text
       value: Enter code...
       objectReference: {fileID: 0}
     - target: {fileID: 9155233114738961411, guid: 2a4b533d927b42f40a23c9b0aa67ad4b, type: 3}
@@ -7439,6 +7446,22 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 1046432346}
     m_Modifications:
+    - target: {fileID: 1205148016420575317, guid: 6cc5b0683eab3064fb469039ba66058e, type: 3}
+      propertyPath: m_RegexValue
+      value: (^((\w|\d|_|\+|\-))+((\w|\d|_|\+|\-|(\ ?))[^\ {2,}])*)(\ ?)$
+      objectReference: {fileID: 0}
+    - target: {fileID: 1205148016420575317, guid: 6cc5b0683eab3064fb469039ba66058e, type: 3}
+      propertyPath: m_ContentType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1205148016420575317, guid: 6cc5b0683eab3064fb469039ba66058e, type: 3}
+      propertyPath: m_KeyboardType
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1205148016420575317, guid: 6cc5b0683eab3064fb469039ba66058e, type: 3}
+      propertyPath: m_CharacterValidation
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4057464630348808494, guid: 6cc5b0683eab3064fb469039ba66058e, type: 3}
       propertyPath: m_Name
       value: Multiplayer

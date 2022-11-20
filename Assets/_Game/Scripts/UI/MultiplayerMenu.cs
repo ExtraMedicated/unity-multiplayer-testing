@@ -1,6 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
-using PlayFab.Multiplayer;
+// using PlayFab.Multiplayer;
 using UnityEngine;
 using TMPro;
 using System;
@@ -59,11 +59,15 @@ public class MultiplayerMenu : MonoBehaviour
 		}
 	}
 
-	bool ValidateName(){
+	public bool ValidateName(){
+		playerNameInput.text = playerNameInput.text.Trim();
 		if (string.IsNullOrWhiteSpace(playerNameInput.text)){
 			OnScreenMessage.SetText("Please enter your name", "red");
 			return false;
 		}
+		// if (Regex.IsMatch(playerNameInput.text, @"(^((\w|\d|_|\+|\-))+((\w|\d|_|\+|\-|(\ ?))[^\ {2,}])*)(\ ?)$")){
+		// }
+		PlayerPrefs.SetString(PlayerInfo.ONLINE_PLAYER_NAME_KEY, playerNameInput.text);
 		return true;
 	}
 
@@ -82,7 +86,6 @@ public class MultiplayerMenu : MonoBehaviour
 			loginUtility.authenticationMode = LoginUtility.AuthenticationMode.Local;
 			if (!isAttemptingAuthentication){
 				OnScreenMessage.SetText(string.Empty);
-				if (!ValidateName()) return;
 				localNetMultiplayerPanel.SetActive(true);
 			}
 		}
@@ -93,9 +96,6 @@ public class MultiplayerMenu : MonoBehaviour
 		isAttemptingAuthentication = true;
 		playerNameInput.inputEnabled = false;
 		var playerName = !string.IsNullOrWhiteSpace(playerNameInput.text) ? playerNameInput.text : "Nameless nobody";
-		if (!string.IsNullOrWhiteSpace(playerName)){
-			PlayerPrefs.SetString(PlayerInfo.ONLINE_PLAYER_NAME_KEY, playerName);
-		}
 		loginUtility.AttemptPlayfabLogin(playerName, OnLoginResponse, ViewLobbies);
 	}
 

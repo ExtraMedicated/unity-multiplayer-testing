@@ -4,6 +4,7 @@ using System.IO;
 using UnityEngine;
 
 public class Config : MonoBehaviour {
+	public const int DEFAULT_FRAMERATE = 60;
 	public const int MAX_MULTIPLAYER_CONNECTIONS = 32;
 	[SerializeField] string defaultPlayerName;
 	public bool addCloneNumber;
@@ -37,6 +38,17 @@ public class Config : MonoBehaviour {
 			}
 			return instance;
 		}
+	}
+
+	void Start(){
+		Invoke(nameof(CheckSettings), 1f);
+	}
+
+	void CheckSettings(){
+		if (forceLocalServer){
+			OnScreenMessage.SetText("Config: Using local server only.", "yellow");
+		}
+		Application.targetFrameRate = DEFAULT_FRAMERATE;
 	}
 
 }

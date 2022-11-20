@@ -1,7 +1,6 @@
 using UnityEngine;
 using Mirror;
 using UnityEngine.SceneManagement;
-using PlayFab.Multiplayer;
 using System;
 
 /*
@@ -57,7 +56,9 @@ public class ExtNetworkRoomPlayer : NetworkRoomPlayer
 	/// <para>This can be used as a hook to invoke effects or do client specific cleanup.</para>
 	/// </summary>
 	public override void OnStopClient() {
-		LoginUtility.Logout();
+		if (isLocalPlayer){
+			LoginUtility.Logout();
+		}
 	}
 
 

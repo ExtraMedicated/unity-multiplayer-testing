@@ -13,7 +13,7 @@ public class AddLobbyForm : MonoBehaviour {
 	public void CreateLobby(){
 		// TODO: Not using the ACTUAL private lobby setting for now. It would require using invites.
 		// Instead, just set a custom property to filter these out of the search results.
-		LobbyUtility.CreateLobby(GetRandomMatchID(), levelSelect.GetValue().text, (uint)playerCountSlider.value, privacyToggle.value, true);
+		LobbyUtility.CreateLobby(GetRandomMatchID(), levelSelect.GetRawValue().text, (uint)playerCountSlider.value, privacyToggle.value, true);
 	}
 
 

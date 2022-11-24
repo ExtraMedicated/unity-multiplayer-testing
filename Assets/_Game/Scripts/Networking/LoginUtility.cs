@@ -5,7 +5,6 @@ using Mirror;
 using PlayFab;
 using PlayFab.ClientModels;
 using PlayFab.DataModels;
-using PlayFab.Multiplayer;
 using UnityEngine;
 
 public class LoginUtility : MonoBehaviour {
@@ -34,8 +33,6 @@ public class LoginUtility : MonoBehaviour {
 		DontDestroyOnLoad(gameObject);
 	}
 
-	public bool _enabled;
-
 	void OnEnable(){
 		var networkAuthenticator = networkManager.authenticator as NewNetworkAuthenticator;
 		if (networkAuthenticator != null){
@@ -44,7 +41,6 @@ public class LoginUtility : MonoBehaviour {
 			networkAuthenticator.AuthResponseEvent += OnAuthResponse;
 			networkAuthenticator.OnClientAuthenticated.AddListener(AuthSuccess);
 		}
-		_enabled = true;
 	}
 	void OnDisable(){
 		var networkAuthenticator = networkManager.authenticator as NewNetworkAuthenticator;
@@ -53,7 +49,6 @@ public class LoginUtility : MonoBehaviour {
 			networkAuthenticator.ClientAuthenticateEvent -= AuthenticateClient;
 			networkAuthenticator.AuthResponseEvent -= OnAuthResponse;
 		}
-		_enabled = false;
 	}
 
 	void AuthenticateClient(){
@@ -94,6 +89,14 @@ public class LoginUtility : MonoBehaviour {
 
 
 	string GetDeviceId(){
+	#if PLATFORM_ANDROID
+		// From: http://answers.unity.com/answers/654480/view.html
+		AndroidJavaClass up = new AndroidJavaClass ("com.unity3d.player.UnityPlayer");
+		AndroidJavaObject currentActivity = up.GetStatic<AndroidJavaObject> ("currentActivity");
+		AndroidJavaObject contentResolver = currentActivity.Call<AndroidJavaObject> ("getContentResolver");
+		AndroidJavaClass secure = new AndroidJavaClass ("android.provider.Settings$Secure");
+		return secure.CallStatic<string> ("getString", contentResolver, "android_id");
+	#else
 		if (useRandomFakeDeviceId){
 			return Guid.NewGuid().ToString();
 		}
@@ -109,38 +112,52 @@ public class LoginUtility : MonoBehaviour {
 			PlayerPrefs.SetString("deviceUniqueIdentifier", deviceUniqueIdentifier);
 		}
 		return deviceUniqueIdentifier;
+	#endif
 	}
 
 	public void AttemptPlayfabLogin(string playerName, Action onLoginResult, Action afterLogin){
 		authenticationMode = LoginUtility.AuthenticationMode.CustomID;
 		Debug.Log("AuthenticateClient " + authenticationMode.ToString());
-		// Log into playfab
-		var request = new LoginWithCustomIDRequest{
-			TitleId = PlayFabSettings.TitleId,
-			CustomId = appendNameToDeviceID ? GetDeviceId() + playerName : GetDeviceId(),
-			CreateAccount = true,
-			InfoRequestParameters = new GetPlayerCombinedInfoRequestParams {
-				GetPlayerProfile = true,
-				GetPlayerStatistics = true,
-				GetTitleData = true,
-				GetUserData = true,
-				ProfileConstraints = new PlayerProfileViewConstraints {
-					ShowDisplayName = true,
-				}
+		var infoRequestParameters = new GetPlayerCombinedInfoRequestParams {
+			GetPlayerProfile = true,
+			GetPlayerStatistics = true,
+			GetTitleData = true,
+			GetUserData = true,
+			ProfileConstraints = new PlayerProfileViewConstraints {
+				ShowDisplayName = true,
 			}
 		};
-		PlayFabClientAPI.LoginWithCustomID(
-			request,
+		// Log into playfab
+		#if PLATFORM_ANDROID
+		PlayFabClientAPI.LoginWithAndroidDeviceID(
+			new LoginWithAndroidDeviceIDRequest{
+				TitleId = PlayFabSettings.TitleId,
+				AndroidDeviceId = appendNameToDeviceID ? GetDeviceId() + playerName : GetDeviceId(),
+				CreateAccount = true,
+				InfoRequestParameters = infoRequestParameters,
+			},
 			r => OnPlayFabLoginSuccess(r, playerName, onLoginResult, afterLogin),
 			OnPlayFabError);
+		#else
+		PlayFabClientAPI.LoginWithCustomID(
+			new LoginWithCustomIDRequest{
+				TitleId = PlayFabSettings.TitleId,
+				CustomId = appendNameToDeviceID ? GetDeviceId() + playerName : GetDeviceId(),
+				CreateAccount = true,
+				InfoRequestParameters = infoRequestParameters,
+			},
+			r => OnPlayFabLoginSuccess(r, playerName, onLoginResult, afterLogin),
+			OnPlayFabError);
+		#endif
 	}
 
 	public static void Logout(){
 		PlayFabClientAPI.ForgetAllCredentials();
+		PlayerEntity.AuthContext = null;
 		if (NetworkClient.isConnected){
 			NetworkClient.connection.authenticationData = null;
 		}
-		PlayerEntity.LocalPlayer = null;
+		PlayerEntity.SetLocalPlayer(null);
 	}
 
 	private void OnPlayFabError(PlayFabError e){
@@ -150,15 +167,28 @@ public class LoginUtility : MonoBehaviour {
 
 	private void OnPlayFabLoginSuccess(LoginResult response, string playerName, Action onLoginResult, Action afterLogin)
 	{
-		PlayFabMultiplayer.SetEntityToken(response.AuthenticationContext); // Is this needed?
-		onLoginResult.Invoke();
+		// Debug.Log("EntityToken: " + response.EntityToken.EntityToken);
+		PlayerEntity.AuthContext = response.AuthenticationContext;
+		PlayerEntity.EntityToken = response.EntityToken.EntityToken;
+		// #if !UNITY_ANDROID
+		// try {
+		// 	PlayFabMultiplayer.SetEntityToken(response.AuthenticationContext); // Is this needed?
+		// } catch (Exception e){
+		// 	OnError?.Invoke(e.Message);
+		// }
+		// #endif
 
-		var entity = new PFEntityKey(response.AuthenticationContext);
+		Action callback = () => {
+			PlayerEntity.LocalPlayer.StartSignalR();
+			afterLogin.Invoke();
+		};
+
+		onLoginResult.Invoke();
 		if (PlayerEntity.LocalPlayer == null || PlayerEntity.LocalPlayer.name != playerName){
 			//Set PlayerEntity.LocalPlayer
-			SetPlayerData(response.SessionTicket, playerName, entity, afterLogin);
+			SetPlayerData(response.SessionTicket, playerName, response.EntityToken.Entity, callback);
 		} else {
-			afterLogin.Invoke();
+			callback.Invoke();
 			// GetPlayerData(entity, (result) => {
 			// 	var playerInfo = result.Objects["PlayerData"]?.DataObject as PlayerInfo;
 			// 	if (playerInfo != null){
@@ -174,7 +204,7 @@ public class LoginUtility : MonoBehaviour {
 		}
 	}
 
-	void SetPlayerData(string sessionTicket, string playerName, PFEntityKey entity, Action callback){
+	void SetPlayerData(string sessionTicket, string playerName, EntityKey entity, Action callback){
 		// Debug.Log(JsonConvert.SerializeObject(setObjects));
 
 		// Not sure if I'm actually using this. I'm pretty sure the playerName is coming through the UserTitleDisplayName.
@@ -186,13 +216,12 @@ public class LoginUtility : MonoBehaviour {
 			DisplayName = playerName
 		}, OnUpdateNameSuccess, OnPlayFabError);
 		PlayFabDataAPI.SetObjects(new SetObjectsRequest {
-			Entity = new EntityKey(entity.Id, entity.Type),
+			Entity = entity,
 			Objects = setObjects,
 		}, (setResult) => {
 			// ExtDebug.LogJson("setResult: ", setResult);
 			var pInfo = setObjects[0].DataObject as PlayerInfo;
-			PlayerEntity.LocalPlayer = new PlayerEntity(entity, pInfo, sessionTicket);
-
+			PlayerEntity.SetLocalPlayer(new PlayerEntity(entity, pInfo, sessionTicket));
 			// GetPlayerData(entity, (result) => {
 			// 	var objs = result.Objects;
 			// 	Debug.Log(JsonConvert.SerializeObject(objs));
@@ -203,8 +232,8 @@ public class LoginUtility : MonoBehaviour {
 	}
 
 
-	void GetPlayerData(PFEntityKey entity, Action<GetObjectsResponse> callback){
-		var getRequest = new GetObjectsRequest {Entity = new PlayFab.DataModels.EntityKey { Id = entity.Id, Type = entity.Type }};
+	void GetPlayerData(EntityKey entity, Action<GetObjectsResponse> callback){
+		var getRequest = new GetObjectsRequest {Entity = entity};
 		PlayFabDataAPI.GetObjects(getRequest,
 			result => callback(result),
 			// result => {

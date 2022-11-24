@@ -154,6 +154,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   defaultPlayerName: 
   addCloneNumber: 0
+  subscriptionVersion: 1
   buildId: 
   buildAliasId: 8261b1b2-ad8b-4018-a885-a963516aa023
   forceLocalServer: 1
@@ -6588,7 +6589,7 @@ MonoBehaviour:
   minPlayers: 1
   roomPlayerPrefab: {fileID: 114033720796874720, guid: 6fabeeb81d895aa4e87b915795a65da5, type: 3}
   RoomScene: Assets/_Game/Scenes/Lobby.unity
-  GameplayScene: Assets/_Game/Scenes/Game.unity
+  GameplayScene: 
   _allPlayersReady: 0
   roomSlots: []
   clientIndex: 0

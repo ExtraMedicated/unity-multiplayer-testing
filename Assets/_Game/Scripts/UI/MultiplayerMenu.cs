@@ -116,6 +116,21 @@ public class MultiplayerMenu : MonoBehaviour
 	}
 
 	void ViewLobbies(){
-		lobbyPannel.SetActive(true);
+		StartCoroutine(WaitForSignalR(() => lobbyPannel.SetActive(true)));
+	}
+
+	IEnumerator WaitForSignalR(Action callback){
+		const float GIVE_UP_TIME = 30;
+		float time = 0;
+		OnScreenMessage.SetText("Waiting for SignalR connection handle...");
+		while (string.IsNullOrEmpty(PlayerEntity.LocalPlayer.pubSubConnection.ConnectionHandle)){
+			time += Time.unscaledDeltaTime;
+			if (time > GIVE_UP_TIME){
+				OnScreenMessage.SetText("Gave up waiting for SignalR connection handle...", "red");
+				break;
+			}
+			yield return null;
+		}
+		callback.Invoke();
 	}
 }

@@ -12,10 +12,11 @@ public class LobbyUtility : MonoBehaviour {
 	static LobbyUtility instance;
 	BasicLobbyInfo currentlyJoinedLobby;
 
-	public static event Action<PlayFab.Multiplayer.Lobby> OnLobbyCreateAndJoinCompleted;
-	public static event Action<PlayFab.Multiplayer.Lobby> OnLobbyDisconnected;
+	// public static event Action<PlayFab.Multiplayer.Lobby> OnLobbyCreateAndJoinCompleted;
+	public static event Action<string> OnLobbyDisconnected;
+	// public static event Action<PlayFab.Multiplayer.Lobby> OnLobbyDisconnected;
 	// public static event Action<IList<LobbySearchResult>> OnLobbyFindLobbiesCompleted;
-	public static event Action<PlayFab.Multiplayer.Lobby> OnLobbyJoinCompleted;
+	// public static event Action<PlayFab.Multiplayer.Lobby> OnLobbyJoinCompleted;
 
 	public static BasicLobbyInfo CurrentlyJoinedLobby {
 		get => instance?.currentlyJoinedLobby;
@@ -34,18 +35,18 @@ public class LobbyUtility : MonoBehaviour {
 	}
 
 	void OnEnable(){
-		PlayFabMultiplayer.OnLobbyCreateAndJoinCompleted += PlayFabMultiplayer_OnLobbyCreateAndJoinCompleted;
-		PlayFabMultiplayer.OnLobbyDisconnected += PlayFabMultiplayer_OnLobbyDisconnected;
+		// PlayFabMultiplayer.OnLobbyCreateAndJoinCompleted += PlayFabMultiplayer_OnLobbyCreateAndJoinCompleted;
+		// PlayFabMultiplayer.OnLobbyDisconnected += PlayFabMultiplayer_OnLobbyDisconnected;
 		// PlayFabMultiplayer.OnLobbyFindLobbiesCompleted += PlayFabMultiplayer_OnLobbyFindLobbiesCompleted;
-		PlayFabMultiplayer.OnLobbyJoinCompleted += PlayFabMultiplayer_OnLobbyJoinCompleted;
-		PlayFabMultiplayer.OnLobbyJoinArrangedLobbyCompleted  += PlayFabMultiplayer_OnArrangedLobbyJoinCompleted;
+		// PlayFabMultiplayer.OnLobbyJoinCompleted += PlayFabMultiplayer_OnLobbyJoinCompleted;
+		// PlayFabMultiplayer.OnLobbyJoinArrangedLobbyCompleted  += PlayFabMultiplayer_OnArrangedLobbyJoinCompleted;
 	}
 	void OnDisable(){
-		PlayFabMultiplayer.OnLobbyCreateAndJoinCompleted -= PlayFabMultiplayer_OnLobbyCreateAndJoinCompleted;
-		PlayFabMultiplayer.OnLobbyDisconnected -= PlayFabMultiplayer_OnLobbyDisconnected;
+		// PlayFabMultiplayer.OnLobbyCreateAndJoinCompleted -= PlayFabMultiplayer_OnLobbyCreateAndJoinCompleted;
+		// PlayFabMultiplayer.OnLobbyDisconnected -= PlayFabMultiplayer_OnLobbyDisconnected;
 		// PlayFabMultiplayer.OnLobbyFindLobbiesCompleted -= PlayFabMultiplayer_OnLobbyFindLobbiesCompleted;
-		PlayFabMultiplayer.OnLobbyJoinCompleted -= PlayFabMultiplayer_OnLobbyJoinCompleted;
-		PlayFabMultiplayer.OnLobbyJoinArrangedLobbyCompleted -= PlayFabMultiplayer_OnArrangedLobbyJoinCompleted;
+		// PlayFabMultiplayer.OnLobbyJoinCompleted -= PlayFabMultiplayer_OnLobbyJoinCompleted;
+		// PlayFabMultiplayer.OnLobbyJoinArrangedLobbyCompleted -= PlayFabMultiplayer_OnArrangedLobbyJoinCompleted;
 	}
 
 
@@ -68,23 +69,46 @@ public class LobbyUtility : MonoBehaviour {
 	// 	return false;
 	// }
 
+	public static void SubscribeToLobby(string lobbyId){
+		PlayFabMultiplayerAPI.SubscribeToLobbyResource(
+			new SubscribeToLobbyResourceRequest {
+				ResourceId = lobbyId,
+				EntityKey = PlayerEntity.LocalPlayer.entityKey,
+				PubSubConnectionHandle = PlayerEntity.LocalPlayer.pubSubConnection.ConnectionHandle,
+				// SubscriptionVersion = Config.Instance.subscriptionVersion,
+				Type = SubscriptionType.LobbyChange,
+			},
+			result => ExtDebug.LogJson("SubscribeToLobby: ", result),
+			e => OnError(e, s=>Debug.Log(s))
+		);
+	}
+
 	public static bool FindLobbies(string search, Action<List<LobbySummary>> onSuccessCallback, Action<string> onErrorCallback){
 		// TODO: What is there for the search field to filter on? Should I get rid of it?
 		if ((DateTime.Now - timeOfLastSearch).TotalSeconds > MIN_POLLING_FREQUENCY && PlayerEntity.LocalPlayer != null){
 			Debug.Log("------------- FindLobbies --------------");
+			Debug.Log($"IsClientLoggedIn{PlayerEntity.AuthContext.IsClientLoggedIn()} | IsEntityLoggedIn {PlayerEntity.AuthContext.IsEntityLoggedIn()}" );
+
 			OnScreenMessage.SetText("Finding Lobbies...");
-			var requestProps = new FindLobbiesRequest();
-			var filters = new List<string>{
-				$"{LobbyWrapper.LOBBY_VISIBILITY_SEARCH_KEY} eq {(int)LobbyWrapper.LobbyVisibility.Visible}"
+			var requestProps = new FindLobbiesRequest {
+				AuthenticationContext = PlayerEntity.AuthContext,
 			};
-			if (!string.IsNullOrWhiteSpace(search)){
-				filters.Add($"{LobbyWrapper.LOBBY_NAME_SEARCH_KEY} eq '{search.ToUpperInvariant()}'");
-			}
-			requestProps.Filter = string.Join(" and ", filters);
+			// var filters = new List<string>{
+			// 	$"{LobbyWrapper.LOBBY_VISIBILITY_SEARCH_KEY} eq {(int)LobbyWrapper.LobbyVisibility.Visible}"
+			// };
+			// if (!string.IsNullOrWhiteSpace(search)){
+			// 	filters.Add($"{LobbyWrapper.LOBBY_NAME_SEARCH_KEY} eq '{search.ToUpperInvariant()}'");
+			// }
+			// requestProps.Filter = string.Join(" and ", filters);
+
 			PlayFabMultiplayerAPI.FindLobbies(
 				requestProps,
 				r => APIOnLobbyFindLobbiesCompleted(r, onSuccessCallback),
-				e => Debug.LogError(e.GenerateErrorReport())//OnError(e, onErrorCallback)
+				e => Debug.LogError(e.GenerateErrorReport()),//OnError(e, onErrorCallback)
+				null,
+				new Dictionary<string, string>{
+					{"X-EntityToken", PlayerEntity.EntityToken}
+				}
 			);
 
 			timeOfLastSearch = DateTime.Now;
@@ -113,6 +137,7 @@ public class LobbyUtility : MonoBehaviour {
 	}
 
 	public static void GetLobby(string lobbyId, Action<PlayFab.MultiplayerModels.Lobby> onSuccessCallback, Action<string> onErrorCallback){
+		OnScreenMessage.SetText($"Getting lobby data...");
 		PlayFabMultiplayerAPI.GetLobby(
 			new PlayFab.MultiplayerModels.GetLobbyRequest {LobbyId = lobbyId},
 			r => OnGetLobby(r, onSuccessCallback),
@@ -134,7 +159,7 @@ public class LobbyUtility : MonoBehaviour {
 				LobbyId = lobbyId,
 				MemberEntity = member
 			},
-			OnLeaveLobby,
+			r => OnLeaveLobby(r, lobbyId),
 			e => OnError(e, onErrorCallback)
 		);
 	}
@@ -147,63 +172,131 @@ public class LobbyUtility : MonoBehaviour {
 				MemberEntity = member,
 				PreventRejoin = true, // TODO: What is the proper default for this?
 			},
-			OnLeaveLobby,
+			r => OnLeaveLobby(r, lobbyId),
 			e => OnError(e, onErrorCallback)
 		);
 	}
 
-	private static void OnLeaveLobby(LobbyEmptyResult result)
+	private static void OnLeaveLobby(LobbyEmptyResult result, string lobbyId)
 	{
 		Debug.Log("OnLeaveLobby");
+		OnLobbyDisconnected?.Invoke(lobbyId);
 	}
 
-	public static void CreateLobby(string name, string level, uint maxPlayers, bool isInvisible, bool isPublic){
-		var createConfig = new LobbyCreateConfiguration()
-		{
-			MaxMemberCount = maxPlayers,
-			OwnerMigrationPolicy = LobbyOwnerMigrationPolicy.Automatic,
-			AccessPolicy = isPublic ? LobbyAccessPolicy.Public : LobbyAccessPolicy.Private,
-			SearchProperties = new Dictionary<string, string>{
-				{LobbyWrapper.LOBBY_NAME_SEARCH_KEY, name},
-				{LobbyWrapper.LOBBY_LEVEL_SEARCH_KEY, level},
-				{LobbyWrapper.LOBBY_VISIBILITY_SEARCH_KEY, (isInvisible ? ((int)LobbyWrapper.LobbyVisibility.Invisible) : ((int)LobbyWrapper.LobbyVisibility.Visible)).ToString()},
+	public static void CreateAndJoinLobby(
+		string name,
+		string level,
+		uint maxPlayers,
+		bool isInvisible,
+		bool isPublic,
+		Action<PlayFab.MultiplayerModels.Lobby> successCallback,
+		Action<string> errorCallback
+	){
+		OnScreenMessage.SetText($"Creating lobby: {name}...");
+
+		// var createConfig = new LobbyCreateConfiguration()
+		// {
+		// 	MaxMemberCount = maxPlayers,
+		// 	OwnerMigrationPolicy = LobbyOwnerMigrationPolicy.Automatic,
+		// 	AccessPolicy = isPublic ? LobbyAccessPolicy.Public : LobbyAccessPolicy.Private,
+		// 	SearchProperties = new Dictionary<string, string>{
+		// 		{LobbyWrapper.LOBBY_NAME_SEARCH_KEY, name},
+		// 		{LobbyWrapper.LOBBY_LEVEL_SEARCH_KEY, level},
+		// 		{LobbyWrapper.LOBBY_VISIBILITY_SEARCH_KEY, (isInvisible ? ((int)LobbyWrapper.LobbyVisibility.Invisible) : ((int)LobbyWrapper.LobbyVisibility.Visible)).ToString()},
+		// 	}
+		// };
+
+		// createConfig.LobbyProperties[LobbyWrapper.LOBBY_NAME_KEY] = name;
+		// createConfig.LobbyProperties[LobbyWrapper.LOBBY_LEVEL_KEY] = level;
+		// createConfig.LobbyProperties[LobbyWrapper.LOBBY_SESSION_KEY] = Guid.NewGuid().ToString();
+
+		// var joinConfig = new LobbyJoinConfiguration();
+		// joinConfig.MemberProperties[PlayerEntity.PLAYER_NAME_KEY] = PlayerEntity.LocalPlayer.name;
+
+
+		// PlayFabMultiplayer.CreateAndJoinLobby(
+		// 	PlayerEntity.LocalPlayer.entityKey,
+		// 	createConfig,
+		// 	joinConfig);
+
+		PlayFabMultiplayerAPI.CreateLobby(
+			new CreateLobbyRequest {
+				AuthenticationContext = PlayerEntity.AuthContext,
+				MaxPlayers = maxPlayers,
+				OwnerMigrationPolicy = OwnerMigrationPolicy.Automatic,
+				AccessPolicy =  AccessPolicy.Public, //isPublic ? AccessPolicy.Public : AccessPolicy.Private,
+				SearchData = new Dictionary<string, string>{
+					{LobbyWrapper.LOBBY_NAME_SEARCH_KEY, name},
+					{LobbyWrapper.LOBBY_LEVEL_SEARCH_KEY, level},
+					{LobbyWrapper.LOBBY_VISIBILITY_SEARCH_KEY, (isInvisible ? ((int)LobbyWrapper.LobbyVisibility.Invisible) : ((int)LobbyWrapper.LobbyVisibility.Visible)).ToString()},
+				},
+				LobbyData = new Dictionary<string, string>{
+					{LobbyWrapper.LOBBY_NAME_KEY, name},
+					{LobbyWrapper.LOBBY_LEVEL_KEY, level},
+					{LobbyWrapper.LOBBY_SESSION_KEY, Guid.NewGuid().ToString()},
+				},
+				Owner = PlayerEntity.LocalPlayer.entityKey,
+				UseConnections = true,
+				Members = new List<Member>{
+					new Member {
+						MemberData = new Dictionary<string, string>{
+							{PlayerEntity.PLAYER_NAME_KEY, PlayerEntity.LocalPlayer.name}
+						},
+						MemberEntity = PlayerEntity.LocalPlayer.entityKey,
+						// PubSubConnectionHandle = PlayerEntity.LocalPlayer.signalRConnection.ConnectionHandle,
+					}
+				}
+			},
+			r => _OnLobbyCreated(r, successCallback, errorCallback),
+			e => OnError(e, errorCallback),
+			null,
+			new Dictionary<string, string>{
+				{"X-EntityToken", PlayerEntity.EntityToken}
 			}
-		};
-
-		createConfig.LobbyProperties[LobbyWrapper.LOBBY_NAME_KEY] = name;
-		createConfig.LobbyProperties[LobbyWrapper.LOBBY_LEVEL_KEY] = level;
-		createConfig.LobbyProperties[LobbyWrapper.LOBBY_SESSION_KEY] = Guid.NewGuid().ToString();
-
-		var joinConfig = new LobbyJoinConfiguration();
-		joinConfig.MemberProperties[PlayerEntity.PLAYER_NAME_KEY] = PlayerEntity.LocalPlayer.name;
-
-		OnScreenMessage.SetText($"Creating Lobby: {name}...");
-
-		PlayFabMultiplayer.CreateAndJoinLobby(
-			PlayerEntity.LocalPlayer.entityKey,
-			createConfig,
-			joinConfig);
+		);
 	}
 
-
-	private void PlayFabMultiplayer_OnLobbyCreateAndJoinCompleted(PlayFab.Multiplayer.Lobby lobby, int result)
+	private static void _OnLobbyCreated(CreateLobbyResult result, Action<PlayFab.MultiplayerModels.Lobby> successCallback, Action<string> errorCallback)
 	{
-		OnLobbyCreateAndJoinCompleted?.Invoke(LobbyError.SUCCEEDED(result) ? lobby : null);
+		OnScreenMessage.SetText($"Joining lobby...");
+		GetLobby(result.LobbyId, successCallback, errorCallback);
+		// JoinLobby(result.ConnectionString, successCallback, errorCallback);
 	}
 
-	private void PlayFabMultiplayer_OnLobbyJoinCompleted(PlayFab.Multiplayer.Lobby lobby, PFEntityKey newMember, int result)
-	{
-		OnLobbyJoinCompleted?.Invoke(LobbyError.SUCCEEDED(result) ? lobby : null);
-	}
-	private void PlayFabMultiplayer_OnArrangedLobbyJoinCompleted(PlayFab.Multiplayer.Lobby lobby, PFEntityKey newMember, int result)
-	{
-		OnLobbyJoinCompleted?.Invoke(LobbyError.SUCCEEDED(result) ? lobby : null);
+	public static void JoinLobby(string connectionString, Action<PlayFab.MultiplayerModels.Lobby> successCallback, Action<string> errorCallback){
+		OnScreenMessage.SetText($"Joining lobby...");
+		PlayFabMultiplayerAPI.JoinLobby(
+			new JoinLobbyRequest{
+				ConnectionString = connectionString,
+				// CustomTags ???
+				MemberData = new Dictionary<string, string>{
+					{PlayerEntity.PLAYER_NAME_KEY, PlayerEntity.LocalPlayer.name}
+				},
+				MemberEntity = PlayerEntity.LocalPlayer.entityKey,
+			},
+			r => GetLobby(r.LobbyId, successCallback, errorCallback),
+			e => OnError(e, errorCallback)
+		);
 	}
 
-	private void PlayFabMultiplayer_OnLobbyDisconnected(PlayFab.Multiplayer.Lobby lobby)
-	{
-		OnLobbyDisconnected?.Invoke(lobby);
-	}
+	// private void PlayFabMultiplayer_OnLobbyCreateAndJoinCompleted(PlayFab.Multiplayer.Lobby lobby, int result)
+	// {
+	// 	OnLobbyCreateAndJoinCompleted?.Invoke(LobbyError.SUCCEEDED(result) ? lobby : null);
+	// }
+
+	// private void PlayFabMultiplayer_OnLobbyJoinCompleted(PlayFab.Multiplayer.Lobby lobby, PFEntityKey newMember, int result)
+	// {
+	// 	OnLobbyJoinCompleted?.Invoke(LobbyError.SUCCEEDED(result) ? lobby : null);
+	// }
+	// private void PlayFabMultiplayer_OnArrangedLobbyJoinCompleted(PlayFab.Multiplayer.Lobby lobby, PFEntityKey newMember, int result)
+	// {
+	// 	OnLobbyJoinCompleted?.Invoke(LobbyError.SUCCEEDED(result) ? lobby : null);
+	// }
+
+	// private void PlayFabMultiplayer_OnLobbyDisconnected(PlayFab.Multiplayer.Lobby lobby)
+	// {
+	// 	OnLobbyDisconnected?.Invoke(lobby);
+	// }
 
 	// private void PlayFabMultiplayer_OnLobbyFindLobbiesCompleted(
 	// 	IList<LobbySearchResult> searchResults,

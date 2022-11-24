@@ -74,6 +74,7 @@ public class JoinedLobbyUI : MonoBehaviour {
 			l => {
 				// ExtDebug.LogJson(l);
 				lobby = new LobbyWrapper(l);
+				LobbyUtility.SubscribeToLobby(lobbyId);
 				RefreshUI();
 			},
 			OnError
@@ -163,11 +164,11 @@ public class JoinedLobbyUI : MonoBehaviour {
 	}
 
 	#region Disconnect
-	private void OnLobbyDisconnected(Lobby lobby)
+	private void OnLobbyDisconnected(string lobbyId)
 	{
 		// Disconnected from lobby
 		Debug.Log("Disconnected from lobby!");
-		LeftLobby(lobby.Id);
+		LeftLobby(lobbyId);
 	}
 
 	IEnumerator TempDisableLeaveBtn(){

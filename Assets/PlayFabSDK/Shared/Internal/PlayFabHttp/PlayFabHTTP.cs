@@ -203,6 +203,12 @@ namespace PlayFab.Internal
 #endif
             }
 
+			Debug.Log("____________________ reqContainer: " + Newtonsoft.Json.JsonConvert.SerializeObject(new {
+				reqContainer.ApiEndpoint,
+				reqContainer.RequestHeaders,
+				reqContainer.ApiRequest
+			}));
+
             // These closures preserve the TResult generic information in a way that's safe for all the devices
             reqContainer.DeserializeResultJson = () =>
             {

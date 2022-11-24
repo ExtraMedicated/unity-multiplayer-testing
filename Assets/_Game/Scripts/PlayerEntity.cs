@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using PlayFab;
 using PlayFab.DataModels;
-using PlayFab.Multiplayer;
+// using PlayFab.Multiplayer;
 using PlayFab.MultiplayerModels;
 using UnityEngine;
 
 [System.Serializable]
 public class PlayerEntity {
 	public const string PLAYER_NAME_KEY = "PlayerName";
-	public static PlayerEntity LocalPlayer;
+	public static PlayerEntity LocalPlayer { get; private set; }
+	public static PlayFabAuthenticationContext AuthContext;
+	public static string EntityToken;
+	public SignalRConnection pubSubConnection;
 
 	public string name;
 	public EntityKey entityKey;
@@ -36,10 +39,28 @@ public class PlayerEntity {
 		name = playerInfo.PlayerName;
 	}
 
+	public static void SetLocalPlayer(PlayerEntity playerEntity){
+		if (playerEntity == null){
+			// Also kill the SignalR connection, I guess. Might as well.
+			LocalPlayer.StopSignalR();
+		}
+		LocalPlayer = playerEntity;
+	}
+
 	public string GetSerializedProperties(){
 		return JsonConvert.SerializeObject(new Dictionary<string, string>{
 			{PLAYER_NAME_KEY, name},
 		});
+	}
+
+	public void StartSignalR(){
+		if (pubSubConnection == null){
+			pubSubConnection = new SignalRConnection();
+		}
+		pubSubConnection.Start();
+	}
+	void StopSignalR(){
+		pubSubConnection?.Stop();
 	}
 }
 
@@ -49,4 +70,3 @@ public class PlayerInfo {
 	public string PlayerName;
 	public SetObject ToSetObject() => new SetObject { ObjectName = "PlayerData", DataObject = this };
 }
-

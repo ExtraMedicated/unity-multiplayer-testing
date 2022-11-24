@@ -8,11 +8,13 @@ public class Config : MonoBehaviour {
 	public const int MAX_MULTIPLAYER_CONNECTIONS = 32;
 	[SerializeField] string defaultPlayerName;
 	public bool addCloneNumber;
+	// public uint subscriptionVersion;
 	public string buildId;
 	public string buildAliasId;
 	public bool forceLocalServer;
 	public string localServerIP = "localhost";
 	public uint localServerPort = 7777;
+	public static string PlayFabTitleId => PlayFab.PlayFabSettings.TitleId;
 	public bool HasDefaultPlayerName => !string.IsNullOrWhiteSpace(defaultPlayerName?.Trim());
 	public string GetDefaultPlayerName(){
 		if (HasDefaultPlayerName){
@@ -42,6 +44,13 @@ public class Config : MonoBehaviour {
 
 	void Start(){
 		Invoke(nameof(CheckSettings), 1f);
+	}
+	void Awake(){
+		if (instance != null && instance != this){
+			Destroy(instance.gameObject);
+		}
+		instance = this;
+		DontDestroyOnLoad(gameObject);
 	}
 
 	void CheckSettings(){

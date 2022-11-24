@@ -22,5 +22,9 @@ public class EntityKey {
 	public static implicit operator PlayFab.DataModels.EntityKey(EntityKey entityKey) => new PlayFab.DataModels.EntityKey {Id = entityKey.Id, Type = entityKey.Type};
 	public static implicit operator EntityKey(PFEntityKey entityKey) => new EntityKey(entityKey.Id, entityKey.Type);
 	public static implicit operator PFEntityKey(EntityKey entityKey) => new PFEntityKey(entityKey.Id, entityKey.Type);
+	public static implicit operator EntityKey(PlayFab.ClientModels.EntityKey entityKey) => new EntityKey(entityKey.Id, entityKey.Type);
+	public static implicit operator PlayFab.ClientModels.EntityKey(EntityKey entityKey) => new PlayFab.ClientModels.EntityKey {Id = entityKey.Id, Type = entityKey.Type};
+	// public static implicit operator EntityKey(PFEntityKey entityKey) => new EntityKey(entityKey.Id, entityKey.Type);
+	// public static implicit operator PFEntityKey(EntityKey entityKey) => new PFEntityKey(entityKey.Id, entityKey.Type);
 
 }

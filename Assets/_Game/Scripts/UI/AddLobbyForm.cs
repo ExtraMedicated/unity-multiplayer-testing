@@ -10,10 +10,16 @@ public class AddLobbyForm : MonoBehaviour {
 	[SerializeField] InputFieldWrapper levelNameField;
 	[SerializeField] ToggleFieldWrapper privacyToggle;
 	[SerializeField] SliderFieldWrapper playerCountSlider;
+
+	LobbiesUI lobbiesUI;
+	void Start(){
+		lobbiesUI = FindObjectOfType<LobbiesUI>(true);
+	}
+
 	public void CreateLobby(){
 		// TODO: Not using the ACTUAL private lobby setting for now. It would require using invites.
 		// Instead, just set a custom property to filter these out of the search results.
-		LobbyUtility.CreateLobby(GetRandomMatchID(), levelSelect.GetRawValue().text, (uint)playerCountSlider.value, privacyToggle.value, true);
+		lobbiesUI.CreateAndJoinLobby(GetRandomMatchID(), levelSelect.GetRawValue().text, (uint)playerCountSlider.value, privacyToggle.value, true);
 	}
 
 

@@ -49,9 +49,9 @@ public class LocalMultiplayerForm : MonoBehaviour {
 	}
 
 	void SetPlayerData(){
-		PlayerEntity.LocalPlayer = new PlayerEntity(new PlayerInfo {
+		PlayerEntity.SetLocalPlayer(new PlayerEntity(new PlayerInfo {
 			PlayerName = PlayerPrefs.GetString(PlayerInfo.ONLINE_PLAYER_NAME_KEY),
-		});
+		}));
 	}
 
 	IEnumerator CheckConnectionStatus(float time){

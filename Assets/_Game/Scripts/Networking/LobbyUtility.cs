@@ -56,6 +56,57 @@ public class LobbyUtility : MonoBehaviour {
 		callback.Invoke(error.ErrorMessage);
 	}
 
+	public static void CreateAndJoinLobby(
+		string name,
+		string level,
+		uint maxPlayers,
+		bool isInvisible,
+		bool isPublic,
+		Action<PlayFab.MultiplayerModels.Lobby> successCallback,
+		Action<string> errorCallback
+	){
+		OnScreenMessage.SetText($"Creating lobby: {name}...");
+		PlayFabMultiplayerAPI.CreateLobby(
+			new CreateLobbyRequest {
+				AuthenticationContext = PlayerEntity.AuthContext, //TODO: I don't THINK I need to add this here. I think the SDK adds the entity token automatically
+				MaxPlayers = maxPlayers,
+				OwnerMigrationPolicy = OwnerMigrationPolicy.Automatic,
+				AccessPolicy = isPublic ? AccessPolicy.Public : AccessPolicy.Private,
+				SearchData = new Dictionary<string, string>{
+					{LobbyWrapper.LOBBY_NAME_SEARCH_KEY, name},
+					{LobbyWrapper.LOBBY_LEVEL_SEARCH_KEY, level},
+					{LobbyWrapper.LOBBY_VISIBILITY_SEARCH_KEY, (isInvisible ? ((int)LobbyWrapper.LobbyVisibility.Invisible) : ((int)LobbyWrapper.LobbyVisibility.Visible)).ToString()},
+				},
+				LobbyData = new Dictionary<string, string>{
+					{LobbyWrapper.LOBBY_NAME_KEY, name},
+					{LobbyWrapper.LOBBY_LEVEL_KEY, level},
+					{LobbyWrapper.LOBBY_SESSION_KEY, Guid.NewGuid().ToString()},
+				},
+				Owner = PlayerEntity.LocalPlayer.entityKey,
+				UseConnections = true,
+				Members = new List<Member>{
+					new Member {
+						MemberData = new Dictionary<string, string>{
+							{PlayerEntity.PLAYER_NAME_KEY, PlayerEntity.LocalPlayer.name}
+						},
+						MemberEntity = PlayerEntity.LocalPlayer.entityKey,
+					}
+				}
+			},
+			r => _OnLobbyCreated(r, successCallback, errorCallback),
+			e => OnError(e, errorCallback)
+		);
+	}
+
+	private static void _OnLobbyCreated(CreateLobbyResult result, Action<PlayFab.MultiplayerModels.Lobby> successCallback, Action<string> errorCallback)
+	{
+		OnScreenMessage.SetText($"Lobby Created. (ID: {result.LobbyId})");
+
+		// OnScreenMessage.SetText($"Joining lobby...");
+		// GetLobby(result.LobbyId, successCallback, errorCallback);
+		// JoinLobby(result.ConnectionString, successCallback, errorCallback);
+	}
+
 	// public static bool FindLobbies(){
 
 	// 	if ((DateTime.Now - timeOfLastSearch).TotalSeconds > MIN_POLLING_FREQUENCY && PlayerEntity.LocalPlayer != null){
@@ -70,6 +121,7 @@ public class LobbyUtility : MonoBehaviour {
 	// }
 
 	public static void SubscribeToLobby(string lobbyId){
+		Debug.Log("PlayerEntity.LocalPlayer.pubSubConnection.ConnectionHandle: " + PlayerEntity.LocalPlayer.pubSubConnection.ConnectionHandle);
 		PlayFabMultiplayerAPI.SubscribeToLobbyResource(
 			new SubscribeToLobbyResourceRequest {
 				ResourceId = lobbyId,
@@ -91,7 +143,7 @@ public class LobbyUtility : MonoBehaviour {
 
 			OnScreenMessage.SetText("Finding Lobbies...");
 			var requestProps = new FindLobbiesRequest {
-				AuthenticationContext = PlayerEntity.AuthContext,
+				AuthenticationContext = PlayerEntity.AuthContext, //TODO: I don't THINK I need to add this here. I think the SDK adds the entity token automatically
 			};
 			// var filters = new List<string>{
 			// 	$"{LobbyWrapper.LOBBY_VISIBILITY_SEARCH_KEY} eq {(int)LobbyWrapper.LobbyVisibility.Visible}"
@@ -104,11 +156,7 @@ public class LobbyUtility : MonoBehaviour {
 			PlayFabMultiplayerAPI.FindLobbies(
 				requestProps,
 				r => APIOnLobbyFindLobbiesCompleted(r, onSuccessCallback),
-				e => Debug.LogError(e.GenerateErrorReport()),//OnError(e, onErrorCallback)
-				null,
-				new Dictionary<string, string>{
-					{"X-EntityToken", PlayerEntity.EntityToken}
-				}
+				e => Debug.LogError(e.GenerateErrorReport())//OnError(e, onErrorCallback)
 			);
 
 			timeOfLastSearch = DateTime.Now;
@@ -181,86 +229,6 @@ public class LobbyUtility : MonoBehaviour {
 	{
 		Debug.Log("OnLeaveLobby");
 		OnLobbyDisconnected?.Invoke(lobbyId);
-	}
-
-	public static void CreateAndJoinLobby(
-		string name,
-		string level,
-		uint maxPlayers,
-		bool isInvisible,
-		bool isPublic,
-		Action<PlayFab.MultiplayerModels.Lobby> successCallback,
-		Action<string> errorCallback
-	){
-		OnScreenMessage.SetText($"Creating lobby: {name}...");
-
-		// var createConfig = new LobbyCreateConfiguration()
-		// {
-		// 	MaxMemberCount = maxPlayers,
-		// 	OwnerMigrationPolicy = LobbyOwnerMigrationPolicy.Automatic,
-		// 	AccessPolicy = isPublic ? LobbyAccessPolicy.Public : LobbyAccessPolicy.Private,
-		// 	SearchProperties = new Dictionary<string, string>{
-		// 		{LobbyWrapper.LOBBY_NAME_SEARCH_KEY, name},
-		// 		{LobbyWrapper.LOBBY_LEVEL_SEARCH_KEY, level},
-		// 		{LobbyWrapper.LOBBY_VISIBILITY_SEARCH_KEY, (isInvisible ? ((int)LobbyWrapper.LobbyVisibility.Invisible) : ((int)LobbyWrapper.LobbyVisibility.Visible)).ToString()},
-		// 	}
-		// };
-
-		// createConfig.LobbyProperties[LobbyWrapper.LOBBY_NAME_KEY] = name;
-		// createConfig.LobbyProperties[LobbyWrapper.LOBBY_LEVEL_KEY] = level;
-		// createConfig.LobbyProperties[LobbyWrapper.LOBBY_SESSION_KEY] = Guid.NewGuid().ToString();
-
-		// var joinConfig = new LobbyJoinConfiguration();
-		// joinConfig.MemberProperties[PlayerEntity.PLAYER_NAME_KEY] = PlayerEntity.LocalPlayer.name;
-
-
-		// PlayFabMultiplayer.CreateAndJoinLobby(
-		// 	PlayerEntity.LocalPlayer.entityKey,
-		// 	createConfig,
-		// 	joinConfig);
-
-		PlayFabMultiplayerAPI.CreateLobby(
-			new CreateLobbyRequest {
-				AuthenticationContext = PlayerEntity.AuthContext,
-				MaxPlayers = maxPlayers,
-				OwnerMigrationPolicy = OwnerMigrationPolicy.Automatic,
-				AccessPolicy =  AccessPolicy.Public, //isPublic ? AccessPolicy.Public : AccessPolicy.Private,
-				SearchData = new Dictionary<string, string>{
-					{LobbyWrapper.LOBBY_NAME_SEARCH_KEY, name},
-					{LobbyWrapper.LOBBY_LEVEL_SEARCH_KEY, level},
-					{LobbyWrapper.LOBBY_VISIBILITY_SEARCH_KEY, (isInvisible ? ((int)LobbyWrapper.LobbyVisibility.Invisible) : ((int)LobbyWrapper.LobbyVisibility.Visible)).ToString()},
-				},
-				LobbyData = new Dictionary<string, string>{
-					{LobbyWrapper.LOBBY_NAME_KEY, name},
-					{LobbyWrapper.LOBBY_LEVEL_KEY, level},
-					{LobbyWrapper.LOBBY_SESSION_KEY, Guid.NewGuid().ToString()},
-				},
-				Owner = PlayerEntity.LocalPlayer.entityKey,
-				UseConnections = true,
-				Members = new List<Member>{
-					new Member {
-						MemberData = new Dictionary<string, string>{
-							{PlayerEntity.PLAYER_NAME_KEY, PlayerEntity.LocalPlayer.name}
-						},
-						MemberEntity = PlayerEntity.LocalPlayer.entityKey,
-						// PubSubConnectionHandle = PlayerEntity.LocalPlayer.signalRConnection.ConnectionHandle,
-					}
-				}
-			},
-			r => _OnLobbyCreated(r, successCallback, errorCallback),
-			e => OnError(e, errorCallback),
-			null,
-			new Dictionary<string, string>{
-				{"X-EntityToken", PlayerEntity.EntityToken}
-			}
-		);
-	}
-
-	private static void _OnLobbyCreated(CreateLobbyResult result, Action<PlayFab.MultiplayerModels.Lobby> successCallback, Action<string> errorCallback)
-	{
-		OnScreenMessage.SetText($"Joining lobby...");
-		GetLobby(result.LobbyId, successCallback, errorCallback);
-		// JoinLobby(result.ConnectionString, successCallback, errorCallback);
 	}
 
 	public static void JoinLobby(string connectionString, Action<PlayFab.MultiplayerModels.Lobby> successCallback, Action<string> errorCallback){
